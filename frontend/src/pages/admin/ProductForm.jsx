@@ -129,6 +129,11 @@ export default function ProductForm() {
           </div>
         </div>
         <div className="field">
+          <label htmlFor="whatsappPhone">WhatsApp del anfitrión <span className="hint">(con indicativo del país, ej.: 57 300 123 4567)</span></label>
+          <input type="tel" inputMode="tel" maxLength={20} defaultValue={product.whatsappPhone ?? ''} {...fieldProps('whatsappPhone')} />
+          {errorText('whatsappPhone')}
+        </div>
+        <div className="field">
           <label htmlFor="categoryId">Categoría</label>
           <select defaultValue={product.category?.id ?? ''} {...fieldProps('categoryId')}>
             <option value="">Sin categoría</option>

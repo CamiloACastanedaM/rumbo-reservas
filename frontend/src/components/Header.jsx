@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, Heart, LayoutDashboard, LogOut } from 'lucide-react'
+import { ChevronDown, Heart, LayoutDashboard, LogOut, Luggage } from 'lucide-react'
 import { toast } from 'sonner'
 import Isotype from './Isotype.jsx'
 import { initials, useAuth } from '../auth.jsx'
@@ -67,6 +67,9 @@ function UserMenu({ user }) {
           <strong>{user.firstName} {user.lastName}</strong>
           <span>{user.email}</span>
         </p>
+        <Link to="/mis-reservas" className="menu-item" onClick={() => setOpen(false)}>
+          <Luggage size={16} aria-hidden="true" /> Mis reservas
+        </Link>
         <Link to="/favoritos" className="menu-item" onClick={() => setOpen(false)}>
           <Heart size={16} aria-hidden="true" /> Mis favoritos
         </Link>

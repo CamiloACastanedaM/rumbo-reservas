@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { MailCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../api.js'
@@ -30,6 +30,8 @@ export function validateRegister({ firstName, lastName, email, password }) {
 const EMPTY = { firstName: '', lastName: '', email: '', password: '' }
 
 export default function Register() {
+  // Coming from «Reservar»: after signing up, the login page still knows where to go back.
+  const location = useLocation()
   const [values, setValues] = useState(EMPTY)
   const [touched, setTouched] = useState({})
   const [serverErrors, setServerErrors] = useState({})
@@ -84,12 +86,13 @@ export default function Register() {
           {sending ? 'Creando tu cuenta…' : 'Crear cuenta'}
         </button>
       </form>
-      <p className="auth-switch">¿Ya tienes cuenta? <Link to="/iniciar-sesion">Iniciar sesión</Link></p>
+      <p className="auth-switch">¿Ya tienes cuenta? <Link to="/iniciar-sesion" state={location.state}>Iniciar sesión</Link></p>
     </AuthCard>
   )
 }
 
 function RegisterDone({ user }) {
+  const location = useLocation()
   const [sending, setSending] = useState(false)
   const resend = async () => {
     setSending(true)
@@ -108,7 +111,7 @@ function RegisterDone({ user }) {
         <MailCheck size={32} aria-hidden="true" />
         <p>Te enviamos un correo de confirmación a <strong>{user.email}</strong> con el enlace para iniciar sesión.</p>
       </div>
-      <Link to="/iniciar-sesion" state={{ email: user.email }} className="btn btn-solid btn-block">Iniciar sesión</Link>
+      <Link to="/iniciar-sesion" state={{ ...location.state, email: user.email }} className="btn btn-solid btn-block">Iniciar sesión</Link>
       <p className="auth-switch">
         ¿No te llegó? Revisa la carpeta de spam o{' '}
         <button type="button" className="link-btn" onClick={resend} disabled={sending}>

@@ -163,7 +163,7 @@ describe('Detail: policies (#26), share (#27) and reviews (#28)', () => {
     app('/producto/5', <ProductDetail />, '/producto/:id')
     const block = (await screen.findByRole('heading', { name: 'Políticas del alojamiento' })).closest('section')
     expect(block).toHaveClass('policies-block')
-    expect(within(block).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Normas de la casa', 'Política de cancelación'])
+    expect(within(block).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Normas de la casa', 'Política de cancelación', 'Privacidad en WhatsApp'])
   })
 
   it('opens the share window with image, description, link, message and networks', async () => {

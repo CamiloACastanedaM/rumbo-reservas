@@ -22,6 +22,9 @@ export default function DateRangeCalendar({ booked = [], value = {}, onChange, l
   const [offset, setOffset] = useState(0)
   const today = toIso(new Date())
   const isBooked = (iso) => booked.some((r) => r.start <= iso && iso < r.end)
+  // With an arrival picked, the first booked day after it can still be the departure: that guest leaves before the next one arrives.
+  const canLeaveOn = (iso) => Boolean(value.start && !value.end && iso > value.start
+    && !booked.some((r) => r.start < iso && r.end > value.start))
 
   const pick = (iso) => {
     if (!value.start || value.end || iso <= value.start) onChange({ start: iso, end: null })
@@ -41,7 +44,7 @@ export default function DateRangeCalendar({ booked = [], value = {}, onChange, l
       </div>
       <div className="calendar-months">
         {months.map((first) => (
-          <Month key={toIso(first)} first={first} today={today} isBooked={isBooked} value={value}
+          <Month key={toIso(first)} first={first} today={today} isBooked={isBooked} canLeaveOn={canLeaveOn} value={value}
             onPick={onChange ? pick : null} />
         ))}
       </div>
@@ -54,7 +57,7 @@ export default function DateRangeCalendar({ booked = [], value = {}, onChange, l
   )
 }
 
-function Month({ first, today, isBooked, value, onPick }) {
+function Month({ first, today, isBooked, canLeaveOn, value, onPick }) {
   const lead = (first.getDay() + 6) % 7 // Monday first
   const days = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()
   const cells = [...Array(lead).fill(null), ...Array.from({ length: days }, (_, i) => new Date(first.getFullYear(), first.getMonth(), i + 1))]
@@ -76,14 +79,15 @@ function Month({ first, today, isBooked, value, onPick }) {
               const taken = !past && isBooked(iso)
               const edge = iso === value.start || iso === value.end
               const inside = value.start && value.end && iso > value.start && iso < value.end
-              const status = past ? 'fecha pasada' : taken ? 'ocupado' : 'disponible'
+              const exit = taken && onPick && canLeaveOn(iso)
+              const status = past ? 'fecha pasada' : exit ? 'ocupado, disponible como salida' : taken ? 'ocupado' : 'disponible'
               const className = ['day', past && 'is-past', taken && 'is-booked', edge && 'is-edge', inside && 'is-inside', iso === today && 'is-today']
                 .filter(Boolean).join(' ')
               const text = `${dayLabel.format(d)}, ${status}`
               return (
                 <td key={j}>
                   {onPick ? (
-                    <button type="button" className={className} disabled={past || taken} aria-pressed={edge || inside}
+                    <button type="button" className={className} disabled={past || (taken && !exit)} aria-pressed={edge || inside}
                       aria-label={text} onClick={() => onPick(iso)}>{d.getDate()}</button>
                   ) : (
                     <span className={className} aria-label={text} role="img">{d.getDate()}</span>

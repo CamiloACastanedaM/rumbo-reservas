@@ -54,7 +54,7 @@ export default function Login() {
           {sending ? 'Entrando…' : 'Iniciar sesión'}
         </button>
       </form>
-      <p className="auth-switch">¿No tienes cuenta? <Link to="/registro">Crear cuenta</Link></p>
+      <p className="auth-switch">¿No tienes cuenta? <Link to="/registro" state={location.state}>Crear cuenta</Link></p>
     </AuthCard>
   )
 }

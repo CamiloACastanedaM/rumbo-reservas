@@ -719,6 +719,79 @@ button.day:disabled { cursor: not-allowed; }
 .nowrap { white-space: nowrap; }
 .thumb { width: 3.5rem; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-sm); }
 
+/* ---------- Sprint 4: booking, confirmation, history, WhatsApp ---------- */
+.booking-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: var(--space-6); align-items: start; }
+.booking-product { display: grid; gap: var(--space-4); }
+.booking-product h3 { font-size: var(--step-1); margin: var(--space-2) 0 0; }
+.booking-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); color: var(--text-muted); }
+.booking-meta span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.booking-policies { border-top: 1px solid var(--rule); padding-top: var(--space-3); }
+.booking-policies summary { cursor: pointer; font-weight: 700; padding-block: var(--space-2); }
+.booking-policies .policy-list { margin-top: var(--space-3); grid-template-columns: 1fr; }
+.booking-form { display: grid; gap: var(--space-5); background: var(--papel); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: var(--space-5); position: sticky; top: calc(var(--header-h) + var(--space-4)); }
+.booking-form > h2 { font-size: var(--step-2); margin: 0; }
+.booking-section { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-3); min-width: 0; }
+.booking-section legend { font-weight: 800; font-size: var(--step-1); margin-bottom: var(--space-3); padding: 0; }
+.booking-section input[readonly] { background: color-mix(in oklab, var(--frailejon) 45%, var(--papel)); color: var(--text); }
+.date-text { position: relative; }
+.date-text svg { position: absolute; left: var(--space-3); top: 50%; translate: 0 -50%; color: var(--text-muted); pointer-events: none; }
+.date-text input { padding-left: 2.5rem; width: 100%; font-variant-numeric: tabular-nums; }
+.booking-summary { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--rule-strong); font-variant-numeric: tabular-nums; }
+.booking-summary strong { font-size: var(--step-2); }
+.form-error { margin: 0; }
+@media (max-width: 1023px) {
+  .booking-layout { grid-template-columns: 1fr; }
+  .booking-form { position: static; }
+}
+@media (max-width: 640px) {
+  .booking-form { padding: var(--space-4); }
+}
+
+.reservation-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-4); }
+.reservation-list .skeleton { min-height: 10rem; }
+.reservation-card { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: var(--space-4); background: var(--papel); border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+.reservation-card > img { width: 100%; height: 100%; min-height: 9rem; object-fit: cover; }
+.reservation-body { padding: var(--space-4) var(--space-4) var(--space-4) 0; display: grid; gap: var(--space-2); align-content: start; min-width: 0; }
+.reservation-top { display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); }
+.reservation-title { font-size: var(--step-1); margin: 0; overflow-wrap: anywhere; }
+.reservation-title a { color: inherit; }
+.reservation-body > .muted { margin: 0; }
+.reservation-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--space-2) var(--space-4); margin: var(--space-2) 0 0; }
+.reservation-facts dt { font-family: var(--font-label); font-size: var(--step--1); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.reservation-facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.reservation-facts .wide { grid-column: 1 / -1; }
+.status { flex-shrink: 0; white-space: nowrap; font-size: var(--step--1); font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px solid currentColor; }
+.status-proxima { color: var(--rio); }
+.status-en_curso { color: var(--ruta-deep); }
+.status-finalizada { color: var(--text-muted); }
+.reservation-help { display: flex; align-items: center; gap: var(--space-1); margin-top: var(--space-5); }
+@media (max-width: 640px) {
+  .reservation-card { grid-template-columns: 1fr; }
+  .reservation-card > img { aspect-ratio: 16 / 9; min-height: 0; }
+  .reservation-body { padding: 0 var(--space-4) var(--space-4); }
+}
+
+.booking-done { display: grid; gap: var(--space-5); max-width: 48rem; }
+.done-head { text-align: center; display: grid; justify-items: center; gap: var(--space-2); }
+.done-head h1 { margin: 0; font-size: var(--step-3); }
+.done-head p { margin: 0; overflow-wrap: anywhere; }
+.done-icon { color: var(--rio); }
+.done-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
+
+/* Room under the last block so the floating button never hides it. */
+.with-fab { padding-bottom: 5.5rem; }
+.whatsapp-fab { position: fixed; right: max(var(--space-4), env(safe-area-inset-right)); bottom: max(var(--space-4), env(safe-area-inset-bottom)); z-index: 40; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 3.5rem; min-width: 3.5rem; justify-content: center; padding: 0 var(--space-4); border: 0; border-radius: 999px; background: #1f7a4d; color: #fff; font: inherit; font-weight: 700; box-shadow: var(--shadow-lift); cursor: pointer; }
+.whatsapp-fab:hover { background: #17603c; }
+.whatsapp-fab:focus-visible { outline: 3px solid var(--ruta); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .whatsapp-fab { padding: 0; }
+  .whatsapp-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .whatsapp-fab { transition: transform 160ms var(--ease-out), background-color 160ms; }
+  .whatsapp-fab:active { transform: scale(0.96); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }

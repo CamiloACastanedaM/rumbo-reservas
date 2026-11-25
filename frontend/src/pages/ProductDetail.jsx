@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, MapPin, Share2 } from 'lucide-react'
+import { ArrowLeft, CalendarCheck, MapPin, Share2 } from 'lucide-react'
 import { api, formatPrice } from '../api.js'
 import Gallery from '../components/Gallery.jsx'
 import FeatureIcon from '../components/FeatureIcon.jsx'
@@ -9,6 +9,9 @@ import FavoriteButton from '../components/FavoriteButton.jsx'
 import Reviews from '../components/Reviews.jsx'
 import ShareDialog from '../components/ShareDialog.jsx'
 import { RatingSummary } from '../components/Rating.jsx'
+import WhatsAppButton from '../components/WhatsAppButton.jsx'
+import { useAuth } from '../auth.jsx'
+import { LOGIN_TO_BOOK } from './Booking.jsx'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -16,6 +19,7 @@ export default function ProductDetail() {
   const location = useLocation()
   const [state, setState] = useState({ status: 'loading' })
   const [sharing, setSharing] = useState(false)
+  const { user } = useAuth()
 
   useEffect(() => {
     let alive = true
@@ -49,9 +53,15 @@ export default function ProductDetail() {
     id: product.id, name: product.name, city: product.city, pricePerNight: product.pricePerNight,
     mainImage: product.images[0] ?? null, category: product.category?.title ?? null, rating: product.rating,
   }
+  // Signed out: the login page explains why and comes back to the booking page afterwards.
+  const book = () => {
+    const to = `/producto/${product.id}/reservar`
+    if (user) navigate(to)
+    else navigate('/iniciar-sesion', { state: { from: to, message: LOGIN_TO_BOOK } })
+  }
   const setRating = (rating) => setState((s) => ({ ...s, product: { ...s.product, rating } }))
   return (
-    <article>
+    <article className="with-fab">
       <header className="detail-head">
         <div className="container">
           <div>
@@ -93,32 +103,38 @@ export default function ProductDetail() {
               )}
             </section>
           </div>
-          {(price || product.category) && (
-            <aside className="price-panel" aria-label="Resumen">
-              {product.category && <p className="map-label">{product.category.title}</p>}
-              {price && <><strong>{price}</strong><span className="muted">por noche</span></>}
-              {product.address && <p className="muted">{product.address}</p>}
-            </aside>
-          )}
+          <aside className="price-panel" aria-label="Resumen y reserva">
+            {product.category && <p className="map-label">{product.category.title}</p>}
+            {price && <><strong>{price}</strong><span className="muted">por noche</span></>}
+            {product.address && <p className="muted">{product.address}</p>}
+            <button type="button" className="btn btn-route btn-block" onClick={book}>
+              <CalendarCheck size={18} aria-hidden="true" /> Reservar
+            </button>
+            {!user && <p className="muted small">Para reservar necesitas iniciar sesión.</p>}
+          </aside>
         </div>
         <Availability productId={product.id} />
         <Reviews productId={product.id} onRating={setRating} />
         <section className="policies-block" aria-labelledby="policies-title">
           <h2 id="policies-title">Políticas del alojamiento</h2>
-          {product.policies.length === 0 ? (
+          {product.policies.length === 0 && (
             <p className="muted">El anfitrión todavía no ha publicado sus políticas. Pregúntale antes de reservar.</p>
-          ) : (
-            <ul className="policy-list">
-              {product.policies.map((x, i) => (
-                <li key={i}>
-                  <h3>{x.title}</h3>
-                  <p>{x.description}</p>
-                </li>
-              ))}
-            </ul>
           )}
+          <ul className="policy-list">
+            {product.policies.map((x, i) => (
+              <li key={i}>
+                <h3>{x.title}</h3>
+                <p>{x.description}</p>
+              </li>
+            ))}
+            <li>
+              <h3>Privacidad en WhatsApp</h3>
+              <p>El chat de WhatsApp es directo entre tú y el anfitrión: Rumbo no lee ni guarda esos mensajes. Solo prellenamos el nombre del alojamiento. No compartas por ese chat contraseñas ni datos de tarjetas; los pagos y cambios de tu reserva se hacen en Rumbo.</p>
+            </li>
+          </ul>
         </section>
       </div>
+      <WhatsAppButton phone={product.whatsappPhone} productName={product.name} />
       <ShareDialog open={sharing} onClose={() => setSharing(false)} product={product} />
     </article>
   )

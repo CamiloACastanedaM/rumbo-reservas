@@ -14,6 +14,8 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Favorites from './pages/Favorites.jsx'
 import CategoryList from './pages/admin/CategoryList.jsx'
+import Booking from './pages/Booking.jsx'
+import MyReservations, { BookingDone } from './pages/Reservations.jsx'
 
 const adminRoutes = (
   <>
@@ -36,6 +38,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/producto/:id" element={<ProductDetail />} />
+          <Route path="/producto/:id/reservar" element={<Booking />} />
+          <Route path="/reservas/:id" element={<BookingDone />} />
+          <Route path="/mis-reservas" element={<MyReservations />} />
           <Route path="/registro" element={<Register />} />
           <Route path="/iniciar-sesion" element={<Login />} />
           <Route path="/favoritos" element={<Favorites />} />
