@@ -22,12 +22,6 @@ public class FeatureController {
         this.repository = repository;
     }
 
-    public record FeatureDto(Long id, String name, String icon) {
-        public static FeatureDto from(Feature f) {
-            return new FeatureDto(f.getId(), f.getName(), f.getIcon());
-        }
-    }
-
     public record FeatureForm(
             @NotBlank(message = "El nombre es obligatorio.")
             @Size(max = 60, message = "El nombre admite hasta 60 caracteres.") String name,

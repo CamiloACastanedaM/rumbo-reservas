@@ -17,8 +17,8 @@ const adminRoutes = (
   <>
     <Route index element={<AdminHome />} />
     <Route path="productos" element={<ProductList />} />
-    <Route path="productos/nuevo" element={<ProductForm />} />
-    <Route path="productos/:id/editar" element={<ProductForm />} />
+    <Route path="productos/nuevo" element={<ProductForm key="new" />} />
+    <Route path="productos/:id/editar" element={<ProductForm key="edit" />} />
     <Route path="categorias/nueva" element={<CategoryForm />} />
     <Route path="caracteristicas" element={<FeatureAdmin />} />
     <Route path="usuarios" element={<UserAdmin />} />

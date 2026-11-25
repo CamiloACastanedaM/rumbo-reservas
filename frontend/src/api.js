@@ -20,11 +20,13 @@ export function writeSession(session) {
 
 export async function api(path, options = {}) {
   const token = readSession()?.token
-  const headers = { ...options.headers }
-  if (token) headers.Authorization = `Bearer ${token}`
-  if (options.json !== undefined) headers['Content-Type'] = 'application/json'
-  const init = { ...options, headers, body: options.json !== undefined ? JSON.stringify(options.json) : options.body }
-  delete init.json
+  const { json, ...init } = options
+  init.headers = { ...options.headers }
+  if (token) init.headers.Authorization = `Bearer ${token}`
+  if (json !== undefined) {
+    init.headers['Content-Type'] = 'application/json'
+    init.body = JSON.stringify(json)
+  }
 
   let res
   try {
@@ -38,7 +40,8 @@ export async function api(path, options = {}) {
     const body = await res.json().catch(() => ({}))
     throw Object.assign(new Error(body.message || OFFLINE), { status: res.status, fields: body.fields || {} })
   }
-  return res.status === 204 || res.status === 202 ? null : res.json()
+  const text = await res.text() // empty for 202/204 and any other void response
+  return text ? JSON.parse(text) : null
 }
 
 /** Uploaded images come back as /uploads/..., seed images are absolute URLs. */

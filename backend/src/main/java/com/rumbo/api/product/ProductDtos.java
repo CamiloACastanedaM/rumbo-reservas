@@ -2,7 +2,7 @@ package com.rumbo.api.product;
 
 import com.rumbo.api.category.CategoryDto;
 import com.rumbo.api.feature.Feature;
-import com.rumbo.api.feature.FeatureController.FeatureDto;
+import com.rumbo.api.feature.FeatureDto;
 
 import java.math.BigDecimal;
 import java.util.Comparator;

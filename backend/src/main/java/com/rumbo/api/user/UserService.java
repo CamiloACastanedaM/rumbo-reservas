@@ -30,7 +30,7 @@ public class UserService {
     @Transactional
     public UserDto register(RegisterRequest req) {
         String email = normalize(req.email());
-        if (repository.existsByEmailIgnoreCase(email)) {
+        if (repository.existsByEmail(email)) {
             throw new ApiException(HttpStatus.CONFLICT, EMAIL_IN_USE);
         }
         User user = new User();
@@ -49,7 +49,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest req) {
-        return repository.findByEmailIgnoreCase(normalize(req.email()))
+        return repository.findByEmail(normalize(req.email()))
                 .filter(u -> encoder.matches(req.password(), u.getPasswordHash()))
                 .map(u -> new LoginResponse(jwt.issue(u.getId()), UserDto.from(u)))
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED,
@@ -59,7 +59,7 @@ public class UserService {
     /** Same answer whether or not the account exists, so the endpoint can't be used to probe emails. */
     @Transactional(readOnly = true)
     public void resendWelcome(String email) {
-        repository.findByEmailIgnoreCase(normalize(email))
+        repository.findByEmail(normalize(email))
                 .ifPresent(u -> mail.sendWelcome(u.getFirstName(), u.getEmail()));
     }
 
@@ -85,7 +85,8 @@ public class UserService {
         return UserDto.from(user);
     }
 
-    private static String normalize(String email) {
+    /** Emails are stored trimmed and lowercased, so lookups are exact matches. */
+    public static String normalize(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 }

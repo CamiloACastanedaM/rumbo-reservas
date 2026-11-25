@@ -16,7 +16,7 @@ export default function ProductForm() {
   const navigate = useNavigate()
   const [product, setProduct] = useState(editing ? null : {})
   const [loadError, setLoadError] = useState(null)
-  const [options, setOptions] = useState({ categories: [], features: [] })
+  const [options, setOptions] = useState(null)
   const [kept, setKept] = useState([])
   const [files, setFiles] = useState([])
   const [errors, setErrors] = useState({})
@@ -26,7 +26,7 @@ export default function ProductForm() {
   useEffect(() => {
     Promise.all([api('/categories'), api('/features')])
       .then(([categories, features]) => setOptions({ categories, features }))
-      .catch((e) => toast.error(e.message))
+      .catch((e) => setLoadError(e.message))
   }, [])
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function ProductForm() {
       </div>
     )
   }
-  if (!product) return <div className="skeleton skeleton-tall" aria-label="Cargando producto" />
+  if (!product || !options) return <div className="skeleton skeleton-tall" aria-label="Cargando producto" />
 
   const fieldProps = (name) => ({
     id: name, name, 'aria-invalid': errors[name] ? true : undefined,
@@ -99,8 +99,7 @@ export default function ProductForm() {
     <>
       <h1>{editing ? 'Editar producto' : 'Agregar producto'}</h1>
       <p className="intro">{editing ? 'Cambia los datos, la categoría, las características o las fotos.' : 'Completa los datos del alojamiento. La primera foto será la principal.'}</p>
-      {/* key: re-mount the inputs once the product being edited arrives, so defaultValue applies */}
-      <form key={product.id ?? 'new'} className="form" onSubmit={onSubmit} noValidate
+      <form className="form" onSubmit={onSubmit} noValidate
         onInput={(e) => clearError(e.target.name)}>
         <div className="field">
           <label htmlFor="name">Nombre</label>
@@ -129,8 +128,7 @@ export default function ProductForm() {
         </div>
         <div className="field">
           <label htmlFor="categoryId">Categoría</label>
-          <select defaultValue={product.category?.id ?? ''} {...fieldProps('categoryId')}
-            key={`cat-${options.categories.length}`}>
+          <select defaultValue={product.category?.id ?? ''} {...fieldProps('categoryId')}>
             <option value="">Sin categoría</option>
             {options.categories.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
@@ -140,7 +138,7 @@ export default function ProductForm() {
           {options.features.length === 0 ? (
             <p className="hint">Todavía no hay características. Créalas en <Link to={`${ADMIN}/caracteristicas`}>Administrar características</Link>.</p>
           ) : (
-            <ul className="feature-checks" key={`f-${options.features.length}`}>
+            <ul className="feature-checks">
               {options.features.map((f) => (
                 <li key={f.id}>
                   <label>

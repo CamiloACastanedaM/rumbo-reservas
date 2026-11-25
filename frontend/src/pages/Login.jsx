@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../api.js'
@@ -7,7 +7,6 @@ import { useAuth } from '../auth.jsx'
 
 export default function Login() {
   const { user, login } = useAuth()
-  const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from ?? '/'
   const [values, setValues] = useState({ email: location.state?.email ?? '', password: '' })
@@ -15,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState(null)
   const [sending, setSending] = useState(false)
 
-  if (user && !sending) return <Navigate to={from} replace />
+  if (user) return <Navigate to={from} replace />
 
   const errors = {}
   if (!values.email.trim()) errors.email = 'Escribe tu correo electrónico.'
@@ -37,7 +36,6 @@ export default function Login() {
       const session = await api('/auth/login', { method: 'POST', json: values })
       login(session)
       toast.success(`Hola de nuevo, ${session.user.firstName}.`)
-      navigate(from, { replace: true })
     } catch (err) {
       setError(err.message)
       setSending(false)

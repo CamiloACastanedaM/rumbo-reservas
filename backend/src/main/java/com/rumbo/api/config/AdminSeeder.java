@@ -3,6 +3,7 @@ package com.rumbo.api.config;
 import com.rumbo.api.user.Role;
 import com.rumbo.api.user.User;
 import com.rumbo.api.user.UserRepository;
+import com.rumbo.api.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Locale;
 
 /** Creates the first administrator from ADMIN_EMAIL / ADMIN_PASSWORD when that account doesn't exist yet. */
 @Component
@@ -26,7 +26,7 @@ public class AdminSeeder implements ApplicationRunner {
                        @Value("${app.admin.email:}") String email, @Value("${app.admin.password:}") String password) {
         this.users = users;
         this.encoder = encoder;
-        this.email = email.trim().toLowerCase(Locale.ROOT);
+        this.email = UserService.normalize(email);
         this.password = password;
     }
 
@@ -36,7 +36,7 @@ public class AdminSeeder implements ApplicationRunner {
             log.warn("ADMIN_EMAIL / ADMIN_PASSWORD no están configurados: no se crea el administrador inicial.");
             return;
         }
-        if (users.existsByEmailIgnoreCase(email)) return;
+        if (users.existsByEmail(email)) return;
         User admin = new User();
         admin.setFirstName("Administrador");
         admin.setLastName("Rumbo");

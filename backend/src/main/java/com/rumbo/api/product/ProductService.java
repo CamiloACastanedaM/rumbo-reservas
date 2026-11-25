@@ -36,9 +36,9 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public PageResponse<ProductSummary> randomPage(long seed, int page, int size, Collection<Long> categoryIds) {
-        long catalogTotal = repository.count();
         List<Long> ids = new ArrayList<>(categoryIds.isEmpty() ? repository.findAllIds()
                 : repository.findIdsByCategoryIds(categoryIds)); // mutable copy for shuffle
+        long catalogTotal = categoryIds.isEmpty() ? ids.size() : repository.count();
         Collections.shuffle(ids, new Random(seed));
         int from = Math.min(page * size, ids.size());
         List<Long> slice = ids.subList(from, Math.min(from + size, ids.size()));
@@ -87,8 +87,8 @@ public class ProductService {
         }
         apply(product, form);
         // Kept photos stay in the order the admin left them; removed ones are deleted (orphanRemoval).
-        List<String> kept = product.getImages().stream().map(ProductImage::getUrl).filter(keep::contains)
-                .sorted(Comparator.comparingInt(keep::indexOf)).toList();
+        Set<String> current = product.getImages().stream().map(ProductImage::getUrl).collect(Collectors.toSet());
+        List<String> kept = keep.stream().filter(current::contains).distinct().toList();
         product.getImages().clear();
         kept.forEach(product::addImage);
         return saveWithImages(product, files);
