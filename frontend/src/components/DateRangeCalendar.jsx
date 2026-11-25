@@ -1,17 +1,11 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { toIso } from '../dates.js'
 
 const WEEKDAYS = ['lu', 'ma', 'mi', 'ju', 'vi', 'sá', 'do']
 const monthTitle = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' })
 const dayLabel = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-const shortDate = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short' })
-
-/** Local YYYY-MM-DD (toISOString would shift the day in Colombia's UTC-5). */
-export const toIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-const fromIso = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
-export const formatShort = (iso) => shortDate.format(fromIso(iso)).replace('.', '')
 const capitalize = (s) => s[0].toUpperCase() + s.slice(1)
-export const formatRange = (start, end) => `${formatShort(start)} – ${formatShort(end)}`
 
 /**
  * Two months side by side (stacked on phones), up to a year ahead.
@@ -20,7 +14,8 @@ export const formatRange = (start, end) => `${formatShort(start)} – ${formatSh
  */
 export default function DateRangeCalendar({ booked = [], value = {}, onChange, label }) {
   const [offset, setOffset] = useState(0)
-  const today = toIso(new Date())
+  const [now] = useState(() => new Date())
+  const today = toIso(now)
   const isBooked = (iso) => booked.some((r) => r.start <= iso && iso < r.end)
   // With an arrival picked, the first booked day after it can still be the departure: that guest leaves before the next one arrives.
   const canLeaveOn = (iso) => Boolean(value.start && !value.end && iso > value.start
@@ -31,7 +26,6 @@ export default function DateRangeCalendar({ booked = [], value = {}, onChange, l
     else onChange({ start: value.start, end: iso })
   }
 
-  const now = new Date()
   const months = [0, 1].map((i) => new Date(now.getFullYear(), now.getMonth() + offset + i, 1))
 
   return (

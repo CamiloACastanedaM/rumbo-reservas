@@ -6,18 +6,21 @@ import { api } from '../api.js'
  * state = { status: 'loading' | 'ok' | 'error', data?, message? }; retry() asks again.
  */
 export default function useApi(path, key) {
-  const [state, setState] = useState({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
+  const request = `${path}|${key}|${attempt}`
+  const [result, setResult] = useState({ status: 'loading' })
 
   useEffect(() => {
     if (!path) return
     let alive = true
-    setState((s) => ({ ...s, status: 'loading' }))
     api(path)
-      .then((data) => alive && setState({ status: 'ok', data }))
-      .catch((err) => alive && setState({ status: 'error', message: err.message }))
+      .then((data) => alive && setResult({ request, status: 'ok', data }))
+      .catch((err) => alive && setResult({ request, status: 'error', message: err.message }))
     return () => { alive = false }
-  }, [path, key, attempt])
+  }, [path, request])
 
+  // A result for an older request reads as loading, keeping its data on screen.
+  const state = !path || result.request === request ? result : { status: 'loading', data: result.data }
+  const setState = (update) => setResult((r) => ({ ...(typeof update === 'function' ? update(r) : update), request: r.request }))
   return { state, setState, retry: () => setAttempt((a) => a + 1) }
 }

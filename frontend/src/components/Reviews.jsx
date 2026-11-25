@@ -4,7 +4,8 @@ import { Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../api.js'
 import { useAuth } from '../auth.jsx'
-import { formatAverage, reviewsLabel, Stars } from './Rating.jsx'
+import { formatAverage, reviewsLabel } from '../api.js'
+import { Stars } from './Rating.jsx'
 import useApi from './useApi.js'
 
 const date = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })

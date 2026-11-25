@@ -53,3 +53,7 @@ export const formatPrice = (value) => (value == null ? null : cop.format(value))
 const count = new Intl.NumberFormat('es-CO')
 /** «1 reseña», «1.284 reseñas». */
 export const countLabel = (n, one, many) => `${count.format(n)} ${n === 1 ? one : many}`
+
+const oneDecimal = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+export const formatAverage = (n) => oneDecimal.format(n)
+export const reviewsLabel = (n) => countLabel(n, 'reseña', 'reseñas')

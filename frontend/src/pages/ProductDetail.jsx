@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CalendarCheck, MapPin, Share2 } from 'lucide-react'
-import { api, formatPrice } from '../api.js'
+import { formatPrice } from '../api.js'
 import Gallery from '../components/Gallery.jsx'
 import FeatureIcon from '../components/FeatureIcon.jsx'
 import Availability from '../components/Availability.jsx'
@@ -10,6 +10,7 @@ import Reviews from '../components/Reviews.jsx'
 import ShareDialog from '../components/ShareDialog.jsx'
 import { RatingSummary } from '../components/Rating.jsx'
 import WhatsAppButton from '../components/WhatsAppButton.jsx'
+import useApi from '../components/useApi.js'
 import { useAuth } from '../auth.jsx'
 import { LOGIN_TO_BOOK } from './Booking.jsx'
 
@@ -17,18 +18,9 @@ export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const [state, setState] = useState({ status: 'loading' })
+  const { state, setState } = useApi(`/products/${id}`)
   const [sharing, setSharing] = useState(false)
   const { user } = useAuth()
-
-  useEffect(() => {
-    let alive = true
-    setState({ status: 'loading' })
-    api(`/products/${id}`)
-      .then((product) => alive && setState({ status: 'ok', product }))
-      .catch((err) => alive && setState({ status: 'error', message: err.message }))
-    return () => { alive = false }
-  }, [id])
 
   // Back to where the visitor came from; on a direct visit go home.
   const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/'))
@@ -46,7 +38,7 @@ export default function ProductDetail() {
     )
   }
 
-  const { product } = state
+  const product = state.data
   const price = formatPrice(product.pricePerNight)
   // Same shape as the home cards, so the favorites list can show it right away.
   const summary = {
@@ -59,7 +51,7 @@ export default function ProductDetail() {
     if (user) navigate(to)
     else navigate('/iniciar-sesion', { state: { from: to, message: LOGIN_TO_BOOK } })
   }
-  const setRating = (rating) => setState((s) => ({ ...s, product: { ...s.product, rating } }))
+  const setRating = (rating) => setState((s) => ({ ...s, data: { ...s.data, rating } }))
   return (
     <article className="with-fab">
       <header className="detail-head">

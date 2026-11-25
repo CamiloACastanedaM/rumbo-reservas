@@ -1,23 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../api.js'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
-import FeatureIcon, { FEATURE_ICONS } from '../../components/FeatureIcon.jsx'
+import FeatureIcon from '../../components/FeatureIcon.jsx'
+import { FEATURE_ICONS } from '../../components/featureIcons.js'
 import useModalDialog from '../../components/useModalDialog.js'
+import useApi from '../../components/useApi.js'
 
 export default function FeatureAdmin() {
-  const [rows, setRows] = useState(null)
-  const [error, setError] = useState(null)
+  const { state, setState, retry: load } = useApi('/features')
+  const rows = state.data ?? null
+  const error = state.status === 'error' ? state.message : null
+  const setRows = (update) => setState((s) => ({ ...s, data: update(s.data) }))
   const [editing, setEditing] = useState(null) // {} = new, feature = edit
   const [target, setTarget] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  const load = () => {
-    setError(null)
-    api('/features').then(setRows).catch((e) => setError(e.message))
-  }
-  useEffect(load, [])
 
   const saved = (feature, isNew) => {
     setRows((r) => (isNew ? [...r, feature] : r.map((f) => (f.id === feature.id ? feature : f)))

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, countLabel, imageSrc } from '../../api.js'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
+import useApi from '../../components/useApi.js'
 import { ADMIN } from './AdminLayout.jsx'
 
 const productsLabel = (n) => countLabel(n, 'producto', 'productos')
@@ -14,16 +15,13 @@ const consequence = (c) => c.productCount === 0
   : `${productsLabel(c.productCount)} ${c.productCount === 1 ? 'quedará' : 'quedarán'} sin categoría: seguirán publicados y podrás asignarles otra al editarlos. La categoría dejará de aparecer en el inicio y en el filtro.`
 
 export default function CategoryList() {
-  const [rows, setRows] = useState(null)
-  const [error, setError] = useState(null)
+  const { state, setState, retry: load } = useApi('/admin/categories')
+  const rows = state.data ?? null
+  const error = state.status === 'error' ? state.message : null
+  const setRows = (update) => setState((s) => ({ ...s, data: update(s.data) }))
   const [target, setTarget] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  const load = () => {
-    setError(null)
-    api('/admin/categories').then(setRows).catch((e) => setError(e.message))
-  }
-  useEffect(load, [])
 
   const remove = async () => {
     setBusy(true)

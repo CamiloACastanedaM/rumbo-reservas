@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Copy, Share2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { imageSrc } from '../api.js'
@@ -19,10 +19,11 @@ export default function ShareDialog({ open, onClose, product }) {
   const link = `${window.location.origin}/producto/${product.id}`
   const [network, setNetwork] = useState('whatsapp')
   const [message, setMessage] = useState('')
-
-  useEffect(() => {
-    if (open) setMessage(`Mira este alojamiento en Rumbo: ${product.name}${product.city ? `, en ${product.city}` : ''}.`)
-  }, [open, product])
+  const [openedFor, setOpenedFor] = useState(null)
+  if (open && openedFor !== product) {
+    setOpenedFor(product)
+    setMessage(`Mira este alojamiento en Rumbo: ${product.name}${product.city ? `, en ${product.city}` : ''}.`)
+  } else if (!open && openedFor) setOpenedFor(null)
 
   const copy = async (text, done) => {
     try {

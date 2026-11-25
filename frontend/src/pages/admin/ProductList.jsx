@@ -1,22 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../api.js'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
+import useApi from '../../components/useApi.js'
 import { ADMIN } from './AdminLayout.jsx'
 
 export default function ProductList() {
-  const [rows, setRows] = useState(null)
-  const [error, setError] = useState(null)
+  const { state, setState, retry: load } = useApi('/admin/products')
+  const rows = state.data ?? null
+  const error = state.status === 'error' ? state.message : null
+  const setRows = (update) => setState((s) => ({ ...s, data: update(s.data) }))
   const [target, setTarget] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  const load = () => {
-    setError(null)
-    api('/admin/products').then(setRows).catch((e) => setError(e.message))
-  }
-  useEffect(load, [])
 
   const remove = async () => {
     setBusy(true)

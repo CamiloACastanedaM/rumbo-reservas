@@ -6,7 +6,8 @@ import { useAuth } from '../auth.jsx'
 import useApi from '../components/useApi.js'
 import Gallery from '../components/Gallery.jsx'
 import FeatureIcon from '../components/FeatureIcon.jsx'
-import DateRangeCalendar, { formatRange, formatShort, toIso } from '../components/DateRangeCalendar.jsx'
+import DateRangeCalendar from '../components/DateRangeCalendar.jsx'
+import { formatRange, formatShort, toIso } from '../dates.js'
 
 export const LOGIN_TO_BOOK = 'Debes iniciar sesión para reservar. Si no tienes cuenta, regístrate: toma menos de un minuto.'
 

@@ -9,7 +9,7 @@ const NAME = /^\p{L}+(?:[ '-]\p{L}+)*$/u
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /** Same rules as the API, so the visitor sees each problem while typing instead of after sending. */
-export function validateRegister({ firstName, lastName, email, password }) {
+function validateRegister({ firstName, lastName, email, password }) {
   const errors = {}
   const name = (value, label) => {
     const v = value.trim()

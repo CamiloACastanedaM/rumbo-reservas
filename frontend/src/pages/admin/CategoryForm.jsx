@@ -4,7 +4,7 @@ import { ImagePlus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../api.js'
 import { ADMIN } from './AdminLayout.jsx'
-import { useObjectUrls } from './ProductForm.jsx'
+import useObjectUrls from '../../components/useObjectUrls.js'
 
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
 const MAX_BYTES = 10 * 1024 * 1024

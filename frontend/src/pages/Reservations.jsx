@@ -3,7 +3,7 @@ import { CalendarCheck, CircleCheck, Star, Luggage } from 'lucide-react'
 import { countLabel, formatPrice, imageSrc } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import useApi from '../components/useApi.js'
-import { formatRange } from '../components/DateRangeCalendar.jsx'
+import { formatRange } from '../dates.js'
 
 const STATUS = { PROXIMA: 'Próxima', EN_CURSO: 'En curso', FINALIZADA: 'Finalizada' }
 const bookedOn = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })

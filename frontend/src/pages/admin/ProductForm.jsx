@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ImagePlus, Plus, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, imageSrc } from '../../api.js'
 import FeatureIcon from '../../components/FeatureIcon.jsx'
+import useObjectUrls from '../../components/useObjectUrls.js'
 import { ADMIN } from './AdminLayout.jsx'
 
 const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
@@ -231,10 +232,4 @@ export default function ProductForm() {
       </form>
     </>
   )
-}
-
-export function useObjectUrls(files) {
-  const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files])
-  useEffect(() => () => urls.forEach(URL.revokeObjectURL), [urls])
-  return urls
 }

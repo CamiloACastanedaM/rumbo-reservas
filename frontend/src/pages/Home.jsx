@@ -5,7 +5,7 @@ import { api, countLabel, imageSrc } from '../api.js'
 import ProductCard from '../components/ProductCard.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBlock from '../components/SearchBlock.jsx'
-import { formatShort, toIso } from '../components/DateRangeCalendar.jsx'
+import { formatShort, toIso } from '../dates.js'
 import useApi from '../components/useApi.js'
 
 // One random seed per page load: a reload reshuffles, while paging and coming back from a detail keep the order.
@@ -14,6 +14,7 @@ const seed = crypto.getRandomValues(new Uint32Array(1))[0]
 export default function Home() {
   const [categories, setCategories] = useState(null)
   const [params, setParams] = useSearchParams()
+  const [today] = useState(() => toIso(new Date()))
   useEffect(() => {
     api('/categories').then(setCategories).catch(() => setCategories([]))
   }, [])
@@ -31,7 +32,7 @@ export default function Home() {
 
   // The search also lives in the URL (?buscar=&llegada=&salida=), so back/forward and shared links work.
   // Dates of an old shared link that already passed are dropped, so the link still searches the text.
-  const fresh = (params.get('llegada') ?? '') >= toIso(new Date())
+  const fresh = (params.get('llegada') ?? '') >= today
   const search = { q: params.get('buscar') ?? '', start: fresh ? params.get('llegada') : null, end: fresh ? params.get('salida') : null }
   const active = Boolean(search.q || (search.start && search.end))
   const runSearch = ({ q, start, end }) => {
@@ -161,25 +162,13 @@ function Categories({ categories, selected, onToggle }) {
 function Recommendations({ categories, selected, onToggle, onClear }) {
   const [params, setParams] = useSearchParams()
   const page = Math.max(0, Number(params.get('pagina') ?? 1) - 1) || 0
-  const [state, setState] = useState({ status: 'loading' })
-  const [retry, setRetry] = useState(0)
-  const selectedKey = selected.join(',')
-
+  const fetched = useApi(`/products?page=${page}&size=10&seed=${seed}&categoryIds=${selected.join(',')}`)
+  // A stale ?pagina past the last page: go back to the first one instead of a false empty state.
+  const pastEnd = fetched.state.status === 'ok' && fetched.state.data.content.length === 0 && fetched.state.data.totalElements > 0
+  const state = pastEnd ? { status: 'loading' } : fetched.state
   useEffect(() => {
-    let alive = true
-    setState((s) => ({ ...s, status: 'loading' }))
-    api(`/products?page=${page}&size=10&seed=${seed}&categoryIds=${selectedKey}`)
-      .then((data) => {
-        if (!alive) return
-        // A stale ?pagina past the last page: go back to the first one instead of a false empty state.
-        if (data.content.length === 0 && data.totalElements > 0) {
-          setParams((prev) => { const next = new URLSearchParams(prev); next.delete('pagina'); return next }, { replace: true })
-        }
-        else setState({ status: 'ok', data })
-      })
-      .catch((err) => alive && setState({ status: 'error', message: err.message }))
-    return () => { alive = false }
-  }, [page, retry, selectedKey])
+    if (pastEnd) setParams((prev) => { const next = new URLSearchParams(prev); next.delete('pagina'); return next }, { replace: true })
+  }, [pastEnd, setParams])
 
   const goTo = (p) => {
     setParams((prev) => {
@@ -224,7 +213,7 @@ function Recommendations({ categories, selected, onToggle, onClear }) {
         {state.status === 'error' ? (
           <div className="state" role="alert">
             <p>{state.message}</p>
-            <button type="button" className="btn btn-solid" onClick={() => setRetry((r) => r + 1)}>Reintentar</button>
+            <button type="button" className="btn btn-solid" onClick={fetched.retry}>Reintentar</button>
           </div>
         ) : !state.data ? (
           <div className="product-grid" aria-hidden="true">

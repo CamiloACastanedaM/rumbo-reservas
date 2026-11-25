@@ -2,7 +2,8 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { CalendarDays, MapPin, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../api.js'
-import DateRangeCalendar, { formatRange, formatShort } from './DateRangeCalendar.jsx'
+import DateRangeCalendar from './DateRangeCalendar.jsx'
+import { formatRange, formatShort } from '../dates.js'
 import useDismiss from './useDismiss.js'
 
 /**
@@ -72,14 +73,15 @@ export default function SearchBlock({ initial, onSearch }) {
 
 /** Accessible combobox: suggestions from the API while typing, arrows + Enter to pick one. */
 function Suggest({ value, onChange }) {
-  const [options, setOptions] = useState([])
+  const [fetched, setOptions] = useState([])
+  const options = value.trim().length < 2 ? [] : fetched
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
   const listId = useId()
 
   useEffect(() => {
     const typed = value.trim()
-    if (typed.length < 2) { setOptions([]); return }
+    if (typed.length < 2) return
     let alive = true
     const timer = setTimeout(() => {
       api(`/products/suggestions?q=${encodeURIComponent(typed)}`)

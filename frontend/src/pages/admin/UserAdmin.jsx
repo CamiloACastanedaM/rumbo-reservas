@@ -1,20 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ShieldCheck, ShieldOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../api.js'
 import { useAuth } from '../../auth.jsx'
+import useApi from '../../components/useApi.js'
 
 export default function UserAdmin() {
   const { user: me } = useAuth()
-  const [rows, setRows] = useState(null)
-  const [error, setError] = useState(null)
+  const { state, setState, retry: load } = useApi('/admin/users')
+  const rows = state.data ?? null
+  const error = state.status === 'error' ? state.message : null
+  const setRows = (update) => setState((s) => ({ ...s, data: update(s.data) }))
   const [busyId, setBusyId] = useState(null)
 
-  const load = () => {
-    setError(null)
-    api('/admin/users').then(setRows).catch((e) => setError(e.message))
-  }
-  useEffect(load, [])
 
   const setRole = async (u, role) => {
     setBusyId(u.id)

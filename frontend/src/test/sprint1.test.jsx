@@ -8,7 +8,7 @@ import Pagination from '../components/Pagination.jsx'
 import Gallery from '../components/Gallery.jsx'
 import AdminLayout from '../pages/admin/AdminLayout.jsx'
 import ProductList from '../pages/admin/ProductList.jsx'
-import { AuthProvider } from '../auth.jsx'
+import AuthProvider from '../AuthProvider.jsx'
 import { writeSession } from '../api.js'
 
 const inRouter = (ui) => render(<MemoryRouter><AuthProvider>{ui}</AuthProvider></MemoryRouter>)
