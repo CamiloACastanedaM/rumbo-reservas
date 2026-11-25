@@ -29,8 +29,8 @@ public class MailService {
     @Async
     public void sendWelcome(String firstName, String email) {
         String loginUrl = frontendUrl + "/iniciar-sesion";
-        String name = HtmlUtils.htmlEscape(firstName);
-        String safeEmail = HtmlUtils.htmlEscape(email);
+        String name = HtmlUtils.htmlEscape(firstName, "UTF-8");
+        String safeEmail = HtmlUtils.htmlEscape(email, "UTF-8");
         String html = """
                 <!doctype html>
                 <html lang="es"><body style="margin:0;background:#dce8d3;font-family:Arial,sans-serif;color:#17402f">
