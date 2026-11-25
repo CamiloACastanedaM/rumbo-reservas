@@ -24,6 +24,8 @@ public record ProductForm(
         List<@Size(max = 80, message = "El título de la política admite hasta 80 caracteres.") String> policyTitles,
         List<@Size(max = 1000, message = "La descripción de la política admite hasta 1000 caracteres.") String> policyDescriptions,
         /** Host's WhatsApp with country code, e.g. 57 300 123 4567. Stored as digits only. */
-        @Pattern(regexp = "^$|^\\+?[0-9 ()-]{8,20}$", message = "Escribe el WhatsApp con el indicativo del país, solo números (ej.: 57 300 123 4567).")
+        /* Same rule as the WhatsApp button: 8 to 15 digits, not starting with 0 (E.164). */
+        @Size(max = 20, message = "El WhatsApp admite hasta 20 caracteres.")
+        @Pattern(regexp = "^$|^\\+?[ ()-]*[1-9](?:[ ()-]*[0-9]){7,14}[ ()-]*$", message = "Escribe el WhatsApp con el indicativo del país, solo números (ej.: 57 300 123 4567).")
         String whatsappPhone) {
 }

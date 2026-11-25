@@ -121,7 +121,7 @@ function BookingForm({ id, user }) {
           <h2 id="booking-product-title" className="sr-only">Detalle del alojamiento</h2>
           <Gallery images={p.images} name={p.name} />
           <p className="booking-meta">
-            {p.city && <span><MapPin size={16} aria-hidden="true" /> {[p.address, p.city].filter(Boolean).join(', ')}</span>}
+            {(p.address || p.city) && <span><MapPin size={16} aria-hidden="true" /> {[p.address, p.city].filter(Boolean).join(', ')}</span>}
             {p.category && <span className="map-label">{p.category.title}</span>}
           </p>
           <p className="description">{p.description}</p>

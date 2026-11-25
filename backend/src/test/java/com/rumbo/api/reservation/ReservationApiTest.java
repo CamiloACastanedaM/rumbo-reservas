@@ -152,6 +152,12 @@ class ReservationApiTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fields.guests").exists())
                 .andExpect(jsonPath("$.fields.phone").exists());
+        for (String phone : new String[]{"+57 (300) 123-4567 890", "(((((((("}) { // over the column size / no digits
+            mvc.perform(post("/api/reservations").with(asAna()).contentType(MediaType.APPLICATION_JSON)
+                            .content(body(TODAY.plusDays(1), TODAY.plusDays(2), ",\"phone\":\"" + phone + "\"")))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.fields.phone").exists());
+        }
         mvc.perform(post("/api/reservations").with(asAna()).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"productId\":999999,\"startDate\":\"" + TODAY.plusDays(1) + "\",\"endDate\":\"" + TODAY.plusDays(2) + "\"}"))
                 .andExpect(status().isNotFound());

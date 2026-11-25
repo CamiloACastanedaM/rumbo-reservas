@@ -20,7 +20,8 @@ public final class ReservationDtos {
             @NotNull(message = "Elige la fecha de salida.") LocalDate endDate,
             @Min(value = 1, message = "Indica al menos 1 huésped.")
             @Max(value = 20, message = "Puedes reservar para máximo 20 huéspedes.") Integer guests,
-            @Pattern(regexp = "^$|^\\+?[0-9 ()-]{7,20}$", message = "Escribe un teléfono válido: solo números, de 7 a 20 dígitos.")
+            @Size(max = 20, message = "El teléfono admite hasta 20 caracteres.")
+            @Pattern(regexp = "^$|^\\+?(?:[ ()-]*[0-9]){7,15}[ ()-]*$", message = "Escribe un teléfono válido: de 7 a 15 dígitos; puedes usar espacios, guiones y paréntesis.")
             String phone,
             LocalTime arrivalTime,
             @Size(max = 500, message = "Las notas admiten hasta 500 caracteres.") String notes) {
