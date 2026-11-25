@@ -31,7 +31,7 @@ import java.util.List;
 @Component
 @ConditionalOnProperty(name = "app.seed", havingValue = "true", matchIfMissing = true)
 public class SeedRunner implements ApplicationRunner {
-    static final String DEMO_PASSWORD = "Viajes2026";
+    private static final String DEMO_PASSWORD = "Viajes2026";
     private static final String[][] DEMO_USERS = {
             {"Valentina", "Gómez", "valentina.gomez@correo.test"},
             {"Andrés", "Ruiz", "andres.ruiz@correo.test"},
@@ -104,12 +104,7 @@ public class SeedRunner implements ApplicationRunner {
         for (int i = 0; i < RATINGS.length; i++) {
             LocalDate start = today.minusDays(90 - i * 6L);
             Reservation stay = stay(demo.get(i % demo.size()), ids.get(i % ids.size()), start, start.plusDays(2 + i % 3));
-            Review review = new Review();
-            review.setUser(stay.getUser());
-            review.setProduct(stay.getProduct());
-            review.setReservation(stay);
-            review.setRating(RATINGS[i]);
-            review.setComment(COMMENTS[i]);
+            Review review = Review.of(stay, RATINGS[i], COMMENTS[i]);
             review.setCreatedAt(stay.getEndDate().atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant());
             reviews.save(review);
         }

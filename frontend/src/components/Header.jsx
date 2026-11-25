@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ChevronDown, Heart, LayoutDashboard, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 import Isotype from './Isotype.jsx'
 import { initials, useAuth } from '../auth.jsx'
+import useDismiss from './useDismiss.js'
 
 export default function Header() {
   const { user, isAdmin } = useAuth()
@@ -44,17 +45,7 @@ function UserMenu({ user }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
-  useEffect(() => {
-    if (!open) return
-    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('pointerdown', close)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', close)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  useDismiss(ref, open, useCallback(() => setOpen(false), []))
 
   const signOut = () => {
     setOpen(false)

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../api.js'
 import { useAuth } from '../auth.jsx'
 import { formatAverage, reviewsLabel, Stars } from './Rating.jsx'
+import useApi from './useApi.js'
 
 const date = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -12,17 +13,8 @@ const date = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', y
 export default function Reviews({ productId, onRating }) {
   const { user } = useAuth()
   const location = useLocation()
-  const [state, setState] = useState({ status: 'loading' })
-  const [retry, setRetry] = useState(0)
-
-  useEffect(() => {
-    let alive = true
-    setState({ status: 'loading' })
-    api(`/products/${productId}/reviews`)
-      .then((data) => alive && setState({ status: 'ok', data }))
-      .catch((err) => alive && setState({ status: 'error', message: err.message }))
-    return () => { alive = false }
-  }, [productId, user?.email, retry])
+  // Signing in or out changes canReview, so the email is part of the key.
+  const { state, setState, retry } = useApi(`/products/${productId}/reviews`, user?.email)
 
   const posted = (data) => {
     setState({ status: 'ok', data })
@@ -33,11 +25,11 @@ export default function Reviews({ productId, onRating }) {
   return (
     <section id="resenas" className="reviews-block" aria-labelledby="reviews-title">
       <h2 id="reviews-title">Reseñas</h2>
-      {state.status === 'loading' && <div className="skeleton" aria-label="Cargando reseñas" />}
+      {state.status === 'loading' && !state.data && <div className="skeleton" aria-label="Cargando reseñas" />}
       {state.status === 'error' && (
         <div className="state" role="alert">
           <p>No pudimos cargar las reseñas en este momento.</p>
-          <button type="button" className="btn btn-solid" onClick={() => setRetry((r) => r + 1)}>Reintentar</button>
+          <button type="button" className="btn btn-solid" onClick={retry}>Reintentar</button>
         </div>
       )}
       {data && (

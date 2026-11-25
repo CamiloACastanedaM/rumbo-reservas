@@ -2,7 +2,6 @@ package com.rumbo.api.review;
 
 import com.rumbo.api.common.ApiException;
 import com.rumbo.api.product.ProductDtos.Rating;
-import com.rumbo.api.product.ProductRepository;
 import com.rumbo.api.product.ProductService;
 import com.rumbo.api.reservation.Reservation;
 import com.rumbo.api.reservation.ReservationRepository;
@@ -24,14 +23,11 @@ import java.util.List;
 public class ReviewController {
     private final ReviewRepository reviews;
     private final ReservationRepository reservations;
-    private final ProductRepository products;
     private final ProductService productService;
 
-    public ReviewController(ReviewRepository reviews, ReservationRepository reservations, ProductRepository products,
-                            ProductService productService) {
+    public ReviewController(ReviewRepository reviews, ReservationRepository reservations, ProductService productService) {
         this.reviews = reviews;
         this.reservations = reservations;
-        this.products = products;
         this.productService = productService;
     }
 
@@ -55,9 +51,7 @@ public class ReviewController {
     @GetMapping
     @Transactional(readOnly = true)
     public ReviewsResponse list(@PathVariable Long productId, @AuthenticationPrincipal Long userId) {
-        if (!products.existsById(productId)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "No encontramos ese alojamiento.");
-        }
+        productService.requireExists(productId);
         boolean canReview = userId != null
                 && !reservations.findReviewable(userId, productId, LocalDate.now()).isEmpty();
         return new ReviewsResponse(productService.rating(productId),
@@ -75,14 +69,8 @@ public class ReviewController {
             throw new ApiException(HttpStatus.FORBIDDEN,
                     "Solo puedes calificar un alojamiento después de terminar una estadía en él, una vez por estadía.");
         }
-        Reservation stay = open.getFirst();
-        Review review = new Review();
-        review.setUser(stay.getUser());
-        review.setProduct(stay.getProduct());
-        review.setReservation(stay);
-        review.setRating(form.rating());
-        review.setComment(form.comment() == null || form.comment().isBlank() ? null : form.comment().trim());
-        reviews.saveAndFlush(review);
+        String comment = form.comment() == null || form.comment().isBlank() ? null : form.comment().trim();
+        reviews.saveAndFlush(Review.of(open.getFirst(), form.rating(), comment));
         return list(productId, userId);
     }
 }

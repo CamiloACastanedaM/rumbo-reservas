@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
+    private static final String NOT_FOUND = "No encontramos ese alojamiento.";
     private static final String NAME_IN_USE = "El nombre ya está en uso. Elige otro nombre para el producto.";
     private final ProductRepository repository;
     private final CategoryRepository categories;
@@ -72,14 +73,15 @@ public class ProductService {
         Set<Long> booked = start == null ? Set.of() : reservations.findBookedProductIds(start, end);
         record Hit(Long id, String name, int score) {
         }
-        List<Long> ids = repository.findSearchRows().stream()
+        List<SearchRow> rows = repository.findSearchRows();
+        List<Long> ids = rows.stream()
                 .filter(r -> categoryIds.isEmpty() || categoryIds.contains(r.categoryId()))
                 .filter(r -> !booked.contains(r.id()))
                 .map(r -> new Hit(r.id(), r.name(), score(r, words)))
                 .filter(h -> h.score() > 0 || words.isEmpty())
                 .sorted(Comparator.comparingInt(Hit::score).reversed().thenComparing(Hit::name))
                 .map(Hit::id).toList();
-        return page(ids, page, size, repository.count());
+        return page(ids, page, size, rows.size());
     }
 
     /** Up to 8 product names, cities and categories that contain what the visitor typed, cities first. */
@@ -107,16 +109,21 @@ public class ProductService {
     /** Booked stays from today up to one year ahead, for the availability calendar. */
     @Transactional(readOnly = true)
     public List<BookedRange> availability(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "No encontramos ese alojamiento.");
-        }
+        requireExists(id);
         LocalDate today = LocalDate.now();
         return reservations.findOverlapping(id, today, today.plusYears(1)).stream()
                 .map(r -> new BookedRange(r.getStartDate(), r.getEndDate())).toList();
     }
 
     /** Average (one decimal) and count of reviews per product; products without reviews are left out. */
-    public Map<Long, Rating> ratings(Collection<Long> productIds) {
+    /** 404 with the usual message when the product is gone. */
+    public void requireExists(Long id) {
+        if (!repository.existsById(id)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, NOT_FOUND);
+        }
+    }
+
+    private Map<Long, Rating> ratings(Collection<Long> productIds) {
         if (productIds.isEmpty()) {
             return Map.of();
         }
@@ -146,10 +153,14 @@ public class ProductService {
     }
 
     private static int score(SearchRow r, List<String> words) {
+        if (words.isEmpty()) {
+            return 0;
+        }
+        String name = fold(r.name()), city = fold(r.city()), category = fold(r.category()), description = fold(r.description());
         int total = 0;
         for (String w : words) {
-            int s = (fold(r.name()).contains(w) ? 4 : 0) + (fold(r.city()).contains(w) ? 3 : 0)
-                    + (fold(r.category()).contains(w) ? 2 : 0) + (fold(r.description()).contains(w) ? 1 : 0);
+            int s = (name.contains(w) ? 4 : 0) + (city.contains(w) ? 3 : 0)
+                    + (category.contains(w) ? 2 : 0) + (description.contains(w) ? 1 : 0);
             if (s == 0) {
                 return 0;
             }
@@ -217,7 +228,7 @@ public class ProductService {
 
     private Product find(Long id) {
         return repository.findWithImagesById(id)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "No encontramos ese alojamiento."));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, NOT_FOUND));
     }
 
     private void apply(Product product, ProductForm form) {

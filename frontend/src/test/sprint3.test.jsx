@@ -215,8 +215,7 @@ describe('Delete category (#29)', () => {
     writeSession({ token: 'jwt', user: { ...ana, role: 'ADMIN' } })
     const fetchMock = mockApi({
       '/admin/categories/1': () => new Response(null, { status: 204 }),
-      '/categories': () => json([{ id: 1, title: 'Glamping' }, { id: 2, title: 'Fincas' }]),
-      '/admin/products': () => json([{ id: 7, name: 'Domo', category: 'Glamping' }, { id: 8, name: 'Burbuja', category: 'Glamping' }]),
+      '/admin/categories': () => json([{ id: 1, title: 'Glamping', productCount: 2 }, { id: 2, title: 'Fincas', productCount: 0 }]),
     })
     render(<MemoryRouter><AuthProvider><CategoryList /></AuthProvider></MemoryRouter>)
     await userEvent.click(await screen.findByRole('button', { name: 'Eliminar categoría Glamping' }))

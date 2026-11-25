@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SearchX, X } from 'lucide-react'
-import { api, imageSrc } from '../api.js'
+import { api, countLabel, imageSrc } from '../api.js'
 import ProductCard from '../components/ProductCard.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBlock from '../components/SearchBlock.jsx'
 import { formatShort } from '../components/DateRangeCalendar.jsx'
-import { formatCount } from '../components/Rating.jsx'
+import useApi from '../components/useApi.js'
 
 // One random seed per page load: a reload reshuffles, while paging and coming back from a detail keep the order.
 const seed = crypto.getRandomValues(new Uint32Array(1))[0]
@@ -47,7 +47,8 @@ export default function Home() {
 
   return (
     <>
-      <SearchBlock initial={search} onSearch={runSearch} />
+      {/* key: back/forward or a cleared search refills the fields from the URL */}
+      <SearchBlock key={`${search.q}|${search.start}|${search.end}`} initial={search} onSearch={runSearch} />
       {/* key: a new search starts again on page 1 */}
       {active && <SearchResults key={`${search.q}|${search.start}|${search.end}`} search={search} onClear={clearSearch} />}
       <Categories categories={categories} selected={selected} onToggle={(id) => {
@@ -60,23 +61,14 @@ export default function Home() {
   )
 }
 
-const resultWord = (n) => `${formatCount(n)} ${n === 1 ? 'alojamiento' : 'alojamientos'}`
+const resultWord = (n) => countLabel(n, 'alojamiento', 'alojamientos')
 
 /** Results of the search block. Categories and recommendations stay below, as on the plain home. */
 function SearchResults({ search, onClear }) {
   const [page, setPage] = useState(0)
-  const [state, setState] = useState({ status: 'loading' })
-  const [retry, setRetry] = useState(0)
-  useEffect(() => {
-    let alive = true
-    setState((s) => ({ ...s, status: 'loading' }))
-    const query = new URLSearchParams({ q: search.q, page, size: 10 })
-    if (search.start && search.end) { query.set('start', search.start); query.set('end', search.end) }
-    api(`/products/search?${query}`)
-      .then((data) => alive && setState({ status: 'ok', data }))
-      .catch((err) => alive && setState({ status: 'error', message: err.message }))
-    return () => { alive = false }
-  }, [search.q, search.start, search.end, page, retry])
+  const query = new URLSearchParams({ q: search.q, page, size: 10 })
+  if (search.start && search.end) { query.set('start', search.start); query.set('end', search.end) }
+  const { state, retry } = useApi(`/products/search?${query}`)
 
   const criteria = [
     search.q && `«${search.q}»`,
@@ -101,7 +93,7 @@ function SearchResults({ search, onClear }) {
         {state.status === 'error' ? (
           <div className="state" role="alert">
             <p>{state.message}</p>
-            <button type="button" className="btn btn-solid" onClick={() => setRetry((r) => r + 1)}>Reintentar</button>
+            <button type="button" className="btn btn-solid" onClick={retry}>Reintentar</button>
           </div>
         ) : !state.data ? (
           <div className="product-grid" aria-hidden="true">

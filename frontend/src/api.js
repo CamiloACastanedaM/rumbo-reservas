@@ -49,3 +49,7 @@ export const imageSrc = (url) => (url?.startsWith('/uploads/') ? API_URL + url :
 
 const cop = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 export const formatPrice = (value) => (value == null ? null : cop.format(value))
+
+const count = new Intl.NumberFormat('es-CO')
+/** «1 reseña», «1.284 reseñas». */
+export const countLabel = (n, one, many) => `${count.format(n)} ${n === 1 ? one : many}`

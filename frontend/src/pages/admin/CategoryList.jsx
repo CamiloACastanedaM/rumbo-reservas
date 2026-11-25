@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { api, imageSrc } from '../../api.js'
+import { api, countLabel, imageSrc } from '../../api.js'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
 import { ADMIN } from './AdminLayout.jsx'
 
-const productsLabel = (n) => `${n} ${n === 1 ? 'producto' : 'productos'}`
+const productsLabel = (n) => countLabel(n, 'producto', 'productos')
 
 /** What deleting this category does, said before the admin confirms. */
-const consequence = (c) => c.count === 0
+const consequence = (c) => c.productCount === 0
   ? 'No tiene productos asociados. Dejará de aparecer en el inicio y en el filtro de categorías.'
-  : `${productsLabel(c.count)} ${c.count === 1 ? 'quedará' : 'quedarán'} sin categoría: seguirán publicados y podrás asignarles otra al editarlos. La categoría dejará de aparecer en el inicio y en el filtro.`
+  : `${productsLabel(c.productCount)} ${c.productCount === 1 ? 'quedará' : 'quedarán'} sin categoría: seguirán publicados y podrás asignarles otra al editarlos. La categoría dejará de aparecer en el inicio y en el filtro.`
 
 export default function CategoryList() {
   const [rows, setRows] = useState(null)
@@ -21,12 +21,7 @@ export default function CategoryList() {
 
   const load = () => {
     setError(null)
-    // Titles are unique, so the admin product rows tell how many products each category has.
-    Promise.all([api('/categories'), api('/admin/products')])
-      .then(([categories, products]) => setRows(categories.map((c) => ({
-        ...c, count: products.filter((p) => p.category === c.title).length,
-      }))))
-      .catch((e) => setError(e.message))
+    api('/admin/categories').then(setRows).catch((e) => setError(e.message))
   }
   useEffect(load, [])
 
@@ -77,7 +72,7 @@ export default function CategoryList() {
                 <td className="col-id">{c.id}</td>
                 <td className="col-icon">{c.imageUrl && <img className="thumb" src={imageSrc(c.imageUrl)} alt="" />}</td>
                 <td>{c.title}</td>
-                <td className="nowrap">{productsLabel(c.count)}</td>
+                <td className="nowrap">{productsLabel(c.productCount)}</td>
                 <td className="col-actions">
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTarget(c)}
                     aria-label={`Eliminar categoría ${c.title}`}>

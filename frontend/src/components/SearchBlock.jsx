@@ -1,8 +1,9 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { CalendarDays, MapPin, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../api.js'
 import DateRangeCalendar, { formatRange, formatShort } from './DateRangeCalendar.jsx'
+import useDismiss from './useDismiss.js'
 
 /**
  * Title, descriptor, text field with suggestions, double calendar and «Realizar búsqueda».
@@ -14,22 +15,7 @@ export default function SearchBlock({ initial, onSearch }) {
   const [calendarOpen, setCalendarOpen] = useState(false)
   const datesRef = useRef(null)
 
-  useEffect(() => {
-    setQ(initial.q)
-    setDates({ start: initial.start, end: initial.end })
-  }, [initial.q, initial.start, initial.end])
-
-  useEffect(() => {
-    if (!calendarOpen) return
-    const close = (e) => { if (!datesRef.current?.contains(e.target)) setCalendarOpen(false) }
-    const onKey = (e) => { if (e.key === 'Escape') setCalendarOpen(false) }
-    document.addEventListener('pointerdown', close)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', close)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [calendarOpen])
+  useDismiss(datesRef, calendarOpen, useCallback(() => setCalendarOpen(false), []))
 
   const pickDates = (range) => {
     setDates(range)
@@ -69,7 +55,7 @@ export default function SearchBlock({ initial, onSearch }) {
             </button>
             <div id="dates-panel" className="dates-panel" hidden={!calendarOpen}>
               <p className="dates-help">{!dates.start || dates.end ? 'Elige el día de llegada.' : 'Ahora elige el día de salida.'}</p>
-              <DateRangeCalendar value={dates} onChange={pickDates} label="Elige las fechas de tu estadía" />
+              {calendarOpen && <DateRangeCalendar value={dates} onChange={pickDates} label="Elige las fechas de tu estadía" />}
               <div className="dates-actions">
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDates({ start: null, end: null })}
                   disabled={!dates.start}>Borrar fechas</button>

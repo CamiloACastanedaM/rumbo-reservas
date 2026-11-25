@@ -23,7 +23,7 @@ public final class ProductDtos {
 
     public record ProductSummary(Long id, String name, String city, BigDecimal pricePerNight,
                                  String mainImage, String category, Rating rating) {
-        public static ProductSummary from(Product p, Rating rating) {
+        static ProductSummary from(Product p, Rating rating) {
             String main = p.getImages().isEmpty() ? null : p.getImages().getFirst().getUrl();
             return new ProductSummary(p.getId(), p.getName(), p.getCity(), p.getPricePerNight(), main,
                     p.getCategory() == null ? null : p.getCategory().getTitle(), rating);

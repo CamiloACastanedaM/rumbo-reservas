@@ -207,6 +207,8 @@ class SprintThreeApiTest {
     @Test
     void deletingACategoryKeepsItsProductsWithoutCategory() throws Exception {
         var admin = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN");
+        mvc.perform(get("/api/admin/categories").with(admin))
+                .andExpect(jsonPath("$[0].title").value("Glamping")).andExpect(jsonPath("$[0].productCount").value(1));
         mvc.perform(delete("/api/admin/categories/" + glamping.getId())).andExpect(status().isUnauthorized());
         mvc.perform(delete("/api/admin/categories/" + glamping.getId()).with(asAna())).andExpect(status().isForbidden());
         mvc.perform(delete("/api/admin/categories/" + glamping.getId()).with(admin)).andExpect(status().isNoContent());

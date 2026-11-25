@@ -43,4 +43,14 @@ public class Review {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    public static Review of(Reservation stay, int rating, String comment) {
+        Review review = new Review();
+        review.setUser(stay.getUser());
+        review.setProduct(stay.getProduct());
+        review.setReservation(stay);
+        review.setRating(rating);
+        review.setComment(comment);
+        return review;
+    }
 }

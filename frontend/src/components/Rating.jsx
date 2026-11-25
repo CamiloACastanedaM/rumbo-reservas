@@ -1,8 +1,9 @@
 import { Star } from 'lucide-react'
+import { countLabel } from '../api.js'
 
 const one = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-export const formatCount = (n) => new Intl.NumberFormat('es-CO').format(n)
-export const reviewsLabel = (count) => `${formatCount(count)} ${count === 1 ? 'reseña' : 'reseñas'}`
+export const reviewsLabel = (n) => countLabel(n, 'reseña', 'reseñas')
+export const formatAverage = (n) => one.format(n)
 
 /** Five stars, filled up to the rounded value. */
 export function Stars({ value, size = 16 }) {
@@ -22,10 +23,8 @@ export function RatingSummary({ rating }) {
   return (
     <span className="rating-summary">
       <Star size={16} aria-hidden="true" fill="currentColor" />
-      <strong aria-label={`Puntuación media ${one.format(rating.average)} de 5`}>{one.format(rating.average)}</strong>
+      <strong aria-label={`Puntuación media ${formatAverage(rating.average)} de 5`}>{formatAverage(rating.average)}</strong>
       <span>· {reviewsLabel(rating.count)}</span>
     </span>
   )
 }
-
-export const formatAverage = (n) => one.format(n)

@@ -24,6 +24,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select new com.rumbo.api.product.ProductDtos$SearchRow(p.id, p.name, p.city, p.description, c.id, c.title) from Product p left join p.category c")
     List<ProductDtos.SearchRow> findSearchRows();
 
+    @Query("select p.id from User u join u.favorites p where u.id = :userId order by p.name")
+    List<Long> findFavoriteIds(Long userId);
+
+    /** Rows of [categoryId, product count]. */
+    @Query("select p.category.id, count(p) from Product p where p.category is not null group by p.category.id")
+    List<Object[]> countByCategory();
+
     @Query("select count(x) from Policy x")
     long countPolicies();
 

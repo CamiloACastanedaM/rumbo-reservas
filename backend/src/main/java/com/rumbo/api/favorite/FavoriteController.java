@@ -1,7 +1,6 @@
 package com.rumbo.api.favorite;
 
 import com.rumbo.api.common.ApiException;
-import com.rumbo.api.product.Product;
 import com.rumbo.api.product.ProductDtos.ProductSummary;
 import com.rumbo.api.product.ProductRepository;
 import com.rumbo.api.product.ProductService;
@@ -12,7 +11,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
 
 /** The signed-in user's favorites. Adding or removing twice is harmless. */
@@ -32,18 +30,15 @@ public class FavoriteController {
     @GetMapping
     @Transactional(readOnly = true)
     public List<ProductSummary> list(@AuthenticationPrincipal Long userId) {
-        List<Long> ids = user(userId).getFavorites().stream()
-                .sorted(Comparator.comparing(Product::getName)).map(Product::getId).toList();
-        return productService.summaries(ids);
+        return productService.summaries(products.findFavoriteIds(userId));
     }
 
     @PostMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
     public void add(@AuthenticationPrincipal Long userId, @PathVariable Long productId) {
-        Product product = products.findById(productId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Ese alojamiento ya no existe."));
-        user(userId).getFavorites().add(product);
+        productService.requireExists(productId);
+        user(userId).getFavorites().add(products.getReferenceById(productId));
     }
 
     @DeleteMapping("/{productId}")

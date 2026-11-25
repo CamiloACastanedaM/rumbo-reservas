@@ -37,6 +37,20 @@ public class CategoryController {
             @Size(max = 500, message = "La descripción admite hasta 500 caracteres.") String description) {
     }
 
+    public record AdminCategory(Long id, String title, String imageUrl, long productCount) {
+    }
+
+    /** Categories with how many products each one has, for the delete confirmation. */
+    @GetMapping("/admin/categories")
+    @Transactional(readOnly = true)
+    public List<AdminCategory> adminList() {
+        var counts = products.countByCategory().stream()
+                .collect(java.util.stream.Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+        return repository.findAll(Sort.by("id")).stream()
+                .map(c -> new AdminCategory(c.getId(), c.getTitle(), c.getImageUrl(), counts.getOrDefault(c.getId(), 0L)))
+                .toList();
+    }
+
     @GetMapping("/categories")
     public List<CategoryDto> list() {
         return repository.findAll(Sort.by("id")).stream().map(CategoryDto::from).toList();

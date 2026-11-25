@@ -1,6 +1,7 @@
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { useAuth } from '../auth.jsx'
+import { countLabel } from '../api.js'
 import { useFavorites } from '../favorites.jsx'
 import ProductCard from '../components/ProductCard.jsx'
 
@@ -22,7 +23,7 @@ export default function Favorites() {
           <h1 id="fav-title" className="section-title">Mis favoritos</h1>
           {items?.length > 0 && (
             <p className="section-note">
-              {items.length} {items.length === 1 ? 'alojamiento guardado' : 'alojamientos guardados'}. Toca el corazón para quitar uno de la lista.
+              {countLabel(items.length, 'alojamiento guardado', 'alojamientos guardados')}. Toca el corazón para quitar uno de la lista.
             </p>
           )}
         </div>
