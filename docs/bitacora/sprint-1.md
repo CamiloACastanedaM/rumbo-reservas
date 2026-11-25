@@ -1,7 +1,7 @@
 # Bitácora del Sprint 1
 
 **Proyecto:** Rumbo · **Estudiante:** Camilo Castañeda · **Fecha de cierre:** 25/11/2026
-**Repositorio:** https://github.com/ingcamilocastaneda/rumbo-reservas (tag `sprint-1`)
+**Repositorio:** https://github.com/CamiloACastanedaM/rumbo-reservas (tag `sprint-1`)
 
 ## 1. Definición del proyecto
 
