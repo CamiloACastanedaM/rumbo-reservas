@@ -8,16 +8,18 @@ import Pagination from '../components/Pagination.jsx'
 import Gallery from '../components/Gallery.jsx'
 import AdminLayout from '../pages/admin/AdminLayout.jsx'
 import ProductList from '../pages/admin/ProductList.jsx'
+import { AuthProvider } from '../auth.jsx'
+import { writeSession } from '../api.js'
 
-const inRouter = (ui) => render(<MemoryRouter>{ui}</MemoryRouter>)
+const inRouter = (ui) => render(<MemoryRouter><AuthProvider>{ui}</AuthProvider></MemoryRouter>)
 
 describe('Header (#1) and Footer (#7)', () => {
   it('shows logo + tagline linking home and the two account buttons', () => {
     inRouter(<Header />)
     expect(screen.getByRole('link', { name: /rumbo, ir al inicio/i })).toHaveAttribute('href', '/')
     expect(screen.getByText('Tu próxima escapada, a un clic')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Crear cuenta' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Iniciar sesión' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Crear cuenta' })).toHaveAttribute('href', '/registro')
+    expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/iniciar-sesion')
   })
 
   it('footer shows isotype, current year and copyright', () => {
@@ -63,14 +65,18 @@ describe('Gallery (#6)', () => {
 
 describe('Admin panel (#9, #10, #11)', () => {
   it('includes the mobile notice and the admin menu', () => {
+    writeSession({ token: 't', user: { id: 1, firstName: 'Ana', lastName: 'Admin', role: 'ADMIN' } })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 500 })))
     inRouter(<Routes><Route path="*" element={<AdminLayout />} /></Routes>)
     expect(screen.getByText('El panel de administración no está disponible en dispositivos móviles')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /agregar producto/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /lista de productos/i })).toBeInTheDocument()
+    writeSession(null)
+    vi.unstubAllGlobals()
   })
 
   it('lists products and deletes one only after confirming', async () => {
-    const rows = [{ id: 1, name: 'Cabaña Uno' }, { id: 2, name: 'Domo Dos' }]
+    const rows = [{ id: 1, name: 'Cabaña Uno', category: 'Cabañas' }, { id: 2, name: 'Domo Dos', category: null }]
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify(rows), { status: 200 }))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
@@ -78,7 +84,7 @@ describe('Admin panel (#9, #10, #11)', () => {
     inRouter(<ProductList />)
 
     const table = await screen.findByRole('table')
-    expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Id', 'Nombre', 'Acciones'])
+    expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Id', 'Nombre', 'Categoría', 'Acciones'])
 
     await userEvent.click(screen.getByRole('button', { name: 'Eliminar producto Cabaña Uno' }))
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
@@ -88,7 +94,7 @@ describe('Admin panel (#9, #10, #11)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Eliminar producto Cabaña Uno' }))
     await userEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
     await waitFor(() => expect(screen.queryByText('Cabaña Uno')).not.toBeInTheDocument())
-    expect(fetchMock).toHaveBeenLastCalledWith(expect.stringContaining('/api/admin/products/1'), { method: 'DELETE' })
+    expect(fetchMock).toHaveBeenLastCalledWith(expect.stringContaining('/api/admin/products/1'), expect.objectContaining({ method: 'DELETE' }))
     expect(screen.getByText('Domo Dos')).toBeInTheDocument()
     vi.unstubAllGlobals()
   })

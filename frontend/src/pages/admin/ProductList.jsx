@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../api.js'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
@@ -51,14 +51,19 @@ export default function ProductList() {
       {rows?.length > 0 && (
         <table className="table">
           <thead>
-            <tr><th className="col-id" scope="col">Id</th><th scope="col">Nombre</th><th className="col-actions" scope="col">Acciones</th></tr>
+            <tr><th className="col-id" scope="col">Id</th><th scope="col">Nombre</th><th scope="col">Categoría</th><th className="col-actions" scope="col">Acciones</th></tr>
           </thead>
           <tbody>
             {rows.map((p) => (
               <tr key={p.id}>
                 <td className="col-id">{p.id}</td>
                 <td><Link to={`/producto/${p.id}`}>{p.name}</Link></td>
+                <td>{p.category ?? <span className="muted">Sin categoría</span>}</td>
                 <td className="col-actions">
+                  <Link className="btn btn-ghost btn-sm" to={`${ADMIN}/productos/${p.id}/editar`}
+                    aria-label={`Editar producto ${p.name}`}>
+                    <Pencil size={16} aria-hidden="true" /> Editar
+                  </Link>
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTarget(p)}
                     aria-label={`Eliminar producto ${p.name}`}>
                     <Trash2 size={16} aria-hidden="true" /> Eliminar producto

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, imageSrc } from '../api.js'
 import ProductCard from '../components/ProductCard.jsx'
@@ -9,11 +10,26 @@ import Pagination from '../components/Pagination.jsx'
 const seed = crypto.getRandomValues(new Uint32Array(1))[0]
 
 export default function Home() {
+  const [categories, setCategories] = useState(null)
+  const [params, setParams] = useSearchParams()
+  useEffect(() => {
+    api('/categories').then(setCategories).catch(() => setCategories([]))
+  }, [])
+
+  // Selected categories live in the URL (?categorias=1,3) so a reload or a shared link keeps the filter.
+  const selected = (params.get('categorias') ?? '').split(',').filter(Boolean).map(Number)
+  const setSelected = (ids) => setParams(ids.length ? { categorias: ids.join(',') } : {})
+  const toggle = (id) => setSelected(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
+
   return (
     <>
       <SearchBlock />
-      <Categories />
-      <Recommendations />
+      <Categories categories={categories} selected={selected} onToggle={(id) => {
+        toggle(id)
+        document.getElementById('rec-title')?.scrollIntoView({ behavior: 'smooth' })
+      }} />
+      <Recommendations categories={categories ?? []} selected={selected} onToggle={toggle}
+        onClear={() => setSelected([])} />
     </>
   )
 }
@@ -44,12 +60,7 @@ function SearchBlock() {
   )
 }
 
-function Categories() {
-  const [categories, setCategories] = useState(null)
-  useEffect(() => {
-    api('/categories').then(setCategories).catch(() => setCategories([]))
-  }, [])
-
+function Categories({ categories, selected, onToggle }) {
   return (
     <section className="page-section" aria-labelledby="cat-title">
       <div className="container">
@@ -63,12 +74,15 @@ function Categories() {
         ) : (
           <ul className="category-list">
             {categories.map((c) => (
-              <li key={c.id} className="category">
-                {c.imageUrl && <img src={imageSrc(c.imageUrl)} alt="" loading="lazy" />}
-                <div className="category-body">
-                  <h3>{c.title}</h3>
-                  {c.description && <p>{c.description}</p>}
-                </div>
+              <li key={c.id}>
+                <button type="button" className="category" aria-pressed={selected.includes(c.id)}
+                  onClick={() => onToggle(c.id)}>
+                  {c.imageUrl && <img src={imageSrc(c.imageUrl)} alt="" loading="lazy" />}
+                  <span className="category-body">
+                    <span className="category-title">{c.title}</span>
+                    {c.description && <span className="category-desc">{c.description}</span>}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
@@ -78,28 +92,36 @@ function Categories() {
   )
 }
 
-function Recommendations() {
+function Recommendations({ categories, selected, onToggle, onClear }) {
   const [params, setParams] = useSearchParams()
   const page = Math.max(0, Number(params.get('pagina') ?? 1) - 1) || 0
   const [state, setState] = useState({ status: 'loading' })
   const [retry, setRetry] = useState(0)
+  const selectedKey = selected.join(',')
 
   useEffect(() => {
     let alive = true
     setState((s) => ({ ...s, status: 'loading' }))
-    api(`/products?page=${page}&size=10&seed=${seed}`)
+    api(`/products?page=${page}&size=10&seed=${seed}&categoryIds=${selectedKey}`)
       .then((data) => {
         if (!alive) return
         // A stale ?pagina past the last page: go back to the first one instead of a false empty state.
-        if (data.content.length === 0 && data.totalElements > 0) setParams({}, { replace: true })
+        if (data.content.length === 0 && data.totalElements > 0) {
+          setParams((prev) => { const next = new URLSearchParams(prev); next.delete('pagina'); return next }, { replace: true })
+        }
         else setState({ status: 'ok', data })
       })
       .catch((err) => alive && setState({ status: 'error', message: err.message }))
     return () => { alive = false }
-  }, [page, retry])
+  }, [page, retry, selectedKey])
 
   const goTo = (p) => {
-    setParams(p === 0 ? {} : { pagina: String(p + 1) })
+    setParams((prev) => {
+      const next = new URLSearchParams(prev)
+      if (p === 0) next.delete('pagina')
+      else next.set('pagina', String(p + 1))
+      return next
+    })
     document.getElementById('rec-title')?.scrollIntoView({ behavior: 'smooth' })
   }
 
@@ -108,8 +130,31 @@ function Recommendations() {
       <div className="container">
         <div className="section-head">
           <h2 id="rec-title" className="section-title">Recomendaciones</h2>
-          {state.data && <p className="section-note">{state.data.totalElements} {state.data.totalElements === 1 ? 'alojamiento' : 'alojamientos'}</p>}
         </div>
+        {categories.length > 0 && (
+          <div className="filter-bar" role="group" aria-labelledby="filter-label">
+            <span id="filter-label" className="map-label">Filtrar por categoría</span>
+            <ul className="chips">
+              {categories.map((c) => (
+                <li key={c.id}>
+                  <button type="button" className="chip" aria-pressed={selected.includes(c.id)} onClick={() => onToggle(c.id)}>
+                    {c.title}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {selected.length > 0 && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={onClear}>
+                <X size={16} aria-hidden="true" /> Limpiar filtros
+              </button>
+            )}
+          </div>
+        )}
+        {state.data && (
+          <p className="result-count" role="status">
+            {state.data.totalElements} de {state.data.catalogTotal} {state.data.catalogTotal === 1 ? 'producto' : 'productos'}
+          </p>
+        )}
         {state.status === 'error' ? (
           <div className="state" role="alert">
             <p>{state.message}</p>
@@ -120,7 +165,12 @@ function Recommendations() {
             {Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton" />)}
           </div>
         ) : state.data.content.length === 0 ? (
-          <div className="state"><p>Todavía no hay alojamientos publicados.</p></div>
+          selected.length > 0 ? (
+            <div className="state">
+              <p>No hay alojamientos en esas categorías por ahora.</p>
+              <button type="button" className="btn btn-solid" onClick={onClear}>Limpiar filtros</button>
+            </div>
+          ) : <div className="state"><p>Todavía no hay alojamientos publicados.</p></div>
         ) : (
           <>
             <ul className="product-grid" aria-busy={state.status === 'loading'}>

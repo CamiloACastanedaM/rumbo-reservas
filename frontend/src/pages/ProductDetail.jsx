@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, MapPin } from 'lucide-react'
 import { api, formatPrice } from '../api.js'
 import Gallery from '../components/Gallery.jsx'
+import FeatureIcon from '../components/FeatureIcon.jsx'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -53,10 +54,24 @@ export default function ProductDetail() {
       <div className="container detail-body">
         <Gallery images={product.images} name={product.name} />
         <div className="detail-info">
-          <section aria-labelledby="desc-title">
-            <h2 id="desc-title">Sobre este alojamiento</h2>
-            <p className="description">{product.description}</p>
-          </section>
+          <div className="detail-main">
+            <section aria-labelledby="desc-title">
+              <h2 id="desc-title">Sobre este alojamiento</h2>
+              <p className="description">{product.description}</p>
+            </section>
+            <section className="features-block" aria-labelledby="features-title">
+              <h2 id="features-title">Características</h2>
+              {product.features.length === 0 ? (
+                <p className="muted">Este alojamiento todavía no tiene características registradas.</p>
+              ) : (
+                <ul className="feature-list">
+                  {product.features.map((f) => (
+                    <li key={f.id}><span className="feature-chip"><FeatureIcon icon={f.icon} /></span>{f.name}</li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
           {(price || product.category) && (
             <aside className="price-panel" aria-label="Resumen">
               {product.category && <p className="map-label">{product.category.title}</p>}
