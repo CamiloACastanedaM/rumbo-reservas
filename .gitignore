@@ -1,0 +1,16 @@
+.env
+*.env.local
+uploads/
+node_modules/
+target/
+dist/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+planning/
+
+# Local design-tool working files
+.impeccable/
+PRODUCT.md
