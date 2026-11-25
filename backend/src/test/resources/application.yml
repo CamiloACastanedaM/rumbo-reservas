@@ -10,7 +10,13 @@ spring:
   sql:
     init:
       mode: never
+  mail:
+    host: localhost
+    port: 1025
 app:
   seed: false
   upload-dir: target/test-uploads
   cors-origins: http://localhost:5173
+  frontend-url: http://localhost:5173
+  mail:
+    from: test@rumbo.local

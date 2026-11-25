@@ -2,6 +2,7 @@ package com.rumbo.api.common;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,6 +26,11 @@ public class ApiExceptionHandler {
         Map<String, String> fields = new LinkedHashMap<>();
         e.getFieldErrors().forEach(f -> fields.putIfAbsent(f.getField(), f.getDefaultMessage()));
         return ResponseEntity.badRequest().body(new ApiError(400, "Revisa los campos marcados.", fields));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ApiError> handle(HttpMessageNotReadableException e) {
+        return ResponseEntity.badRequest().body(new ApiError(400, "La solicitud no tiene un formato válido.", Map.of()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
