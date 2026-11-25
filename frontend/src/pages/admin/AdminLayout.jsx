@@ -1,9 +1,38 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { List, Monitor, PlusSquare } from 'lucide-react'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { FolderPlus, List, Monitor, PlusSquare, ShieldAlert, Sparkles, Users } from 'lucide-react'
+import { useAuth } from '../../auth.jsx'
 
 export const ADMIN = '/administracion'
 
+const MENU = [
+  { to: 'productos/nuevo', label: 'Agregar producto', Icon: PlusSquare },
+  { to: 'productos', label: 'Lista de productos', Icon: List, end: true },
+  { to: 'categorias/nueva', label: 'Agregar categoría', Icon: FolderPlus },
+  { to: 'caracteristicas', label: 'Administrar características', Icon: Sparkles },
+  { to: 'usuarios', label: 'Usuarios y permisos', Icon: Users },
+]
+
 export default function AdminLayout() {
+  const { user, isAdmin } = useAuth()
+  const location = useLocation()
+
+  if (!user) {
+    return <Navigate to="/iniciar-sesion" replace
+      state={{ from: location.pathname, message: 'Inicia sesión con una cuenta de administrador para entrar al panel.' }} />
+  }
+  if (!isAdmin) {
+    return (
+      <div className="container page-section">
+        <div className="state" role="alert">
+          <ShieldAlert size={32} aria-hidden="true" className="state-icon" />
+          <h1 className="section-title">No tienes permisos de administrador</h1>
+          <p>Tu cuenta puede explorar y reservar alojamientos, pero el panel es solo para administradores.</p>
+          <NavLink to="/" className="btn btn-solid">Volver al inicio</NavLink>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container">
       <div className="admin-mobile-note state" role="status">
@@ -14,8 +43,9 @@ export default function AdminLayout() {
         <nav className="admin-nav" aria-label="Administración">
           <h2>Administración</h2>
           <ul>
-            <li><NavLink to="productos/nuevo"><PlusSquare size={18} aria-hidden="true" /> Agregar producto</NavLink></li>
-            <li><NavLink to="productos" end><List size={18} aria-hidden="true" /> Lista de productos</NavLink></li>
+            {MENU.map(({ to, label, Icon, end }) => (
+              <li key={to}><NavLink to={to} end={end}><Icon size={18} aria-hidden="true" /> {label}</NavLink></li>
+            ))}
           </ul>
         </nav>
         <section className="admin-panel">
@@ -30,10 +60,13 @@ export function AdminHome() {
   return (
     <>
       <h1>Panel de administración</h1>
-      <p className="intro">Desde aquí gestionas los alojamientos que ven los viajeros.</p>
+      <p className="intro">Desde aquí gestionas los alojamientos, las categorías, las características y los permisos.</p>
       <div className="admin-home-actions">
-        <NavLink to="productos/nuevo" className="btn btn-solid"><PlusSquare size={18} aria-hidden="true" /> Agregar producto</NavLink>
-        <NavLink to="productos" className="btn btn-ghost"><List size={18} aria-hidden="true" /> Lista de productos</NavLink>
+        {MENU.map(({ to, label, Icon }, i) => (
+          <NavLink key={to} to={to} className={`btn ${i === 0 ? 'btn-solid' : 'btn-ghost'}`}>
+            <Icon size={18} aria-hidden="true" /> {label}
+          </NavLink>
+        ))}
       </div>
     </>
   )

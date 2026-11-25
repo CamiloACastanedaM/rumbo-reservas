@@ -7,12 +7,21 @@ import NotFound from './pages/NotFound.jsx'
 import AdminLayout, { AdminHome } from './pages/admin/AdminLayout.jsx'
 import ProductList from './pages/admin/ProductList.jsx'
 import ProductForm from './pages/admin/ProductForm.jsx'
+import CategoryForm from './pages/admin/CategoryForm.jsx'
+import FeatureAdmin from './pages/admin/FeatureAdmin.jsx'
+import UserAdmin from './pages/admin/UserAdmin.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
 
 const adminRoutes = (
   <>
     <Route index element={<AdminHome />} />
     <Route path="productos" element={<ProductList />} />
     <Route path="productos/nuevo" element={<ProductForm />} />
+    <Route path="productos/:id/editar" element={<ProductForm />} />
+    <Route path="categorias/nueva" element={<CategoryForm />} />
+    <Route path="caracteristicas" element={<FeatureAdmin />} />
+    <Route path="usuarios" element={<UserAdmin />} />
   </>
 )
 
@@ -24,6 +33,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/producto/:id" element={<ProductDetail />} />
+          <Route path="/registro" element={<Register />} />
+          <Route path="/iniciar-sesion" element={<Login />} />
           <Route path="/administración" element={<AdminLayout />}>{adminRoutes}</Route>
           <Route path="/administracion" element={<AdminLayout />}>{adminRoutes}</Route>
           <Route path="*" element={<NotFound />} />
