@@ -153,11 +153,11 @@ function BookingForm({ id, user }) {
             <div className="field-row field-row-2">
               <div className="field">
                 <label htmlFor="b-first">Nombre</label>
-                <input id="b-first" value={user.firstName} readOnly />
+                <input id="b-first" type="text" value={user.firstName} readOnly />
               </div>
               <div className="field">
                 <label htmlFor="b-last">Apellido</label>
-                <input id="b-last" value={user.lastName} readOnly />
+                <input id="b-last" type="text" value={user.lastName} readOnly />
               </div>
             </div>
             <div className="field">
@@ -173,7 +173,7 @@ function BookingForm({ id, user }) {
               <label htmlFor="booking-dates">Llegada y salida</label>
               <div className="date-text">
                 <CalendarDays size={18} aria-hidden="true" />
-                <input id="booking-dates" readOnly placeholder="Elige las fechas en el calendario"
+                <input id="booking-dates" type="text" readOnly placeholder="Elige las fechas en el calendario"
                   value={dates.end ? `${formatRange(dates.start, dates.end)} · ${countLabel(nights, 'noche', 'noches')}` : dates.start ? `${formatShort(dates.start)} – elige la salida` : ''}
                   aria-invalid={Boolean(errors.dates)} aria-describedby={errors.dates ? 'dates-error' : undefined} />
               </div>
