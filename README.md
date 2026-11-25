@@ -188,6 +188,7 @@ cd frontend && npm run build  # build de producción
 - Bitácoras de cada sprint: [`docs/bitacora/`](docs/bitacora/)
 - Planes de QA y evidencias: [`docs/qa/`](docs/qa/)
 - Entregas en PDF: [`docs/entregas/`](docs/entregas/)
+- Despliegue en producción (Railway + Vercel): [`docs/despliegue.md`](docs/despliegue.md)
 - Marca: [`docs/brand/brand.md`](docs/brand/brand.md) · Sistema visual: [`DESIGN.md`](DESIGN.md)
 
 ---
