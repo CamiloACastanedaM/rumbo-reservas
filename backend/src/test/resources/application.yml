@@ -6,6 +6,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    open-in-view: false
   # data.sql is loaded by SeedRunner only into an empty database
   sql:
     init:
@@ -20,3 +21,10 @@ app:
   frontend-url: http://localhost:5173
   mail:
     from: test@rumbo.local
+
+# Swagger stays on in production: the API docs are part of the delivery.
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

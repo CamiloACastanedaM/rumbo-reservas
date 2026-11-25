@@ -45,3 +45,10 @@ app:
     password: ${ADMIN_PASSWORD:}
   mail:
     from: ${MAIL_FROM:Rumbo <no-responder@rumbo.local>}
+
+# Swagger stays on in production: the API docs are part of the delivery.
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
