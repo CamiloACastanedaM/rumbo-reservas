@@ -132,6 +132,8 @@ describe('Login (#14), logout (#15) and admin role (#16)', () => {
 describe('Features in detail (#18) and category filter (#20)', () => {
   it('lists each feature with its icon under "Características"', async () => {
     mockApi({
+      // before '/products/5': routes match by fragment, in order
+      '/availability': () => json([]),
       '/products/5': () => json({
         id: 5, name: 'Cabaña', description: 'd', images: ['https://img/1.jpg'], category: null,
         features: [{ id: 1, name: 'Wifi', icon: 'wifi' }, { id: 2, name: 'Piscina', icon: 'waves' }],
