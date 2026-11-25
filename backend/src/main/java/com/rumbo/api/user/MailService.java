@@ -47,7 +47,7 @@ public class MailService {
                 """.formatted(name, safeEmail, loginUrl);
         try {
             var message = sender.createMimeMessage();
-            var helper = new MimeMessageHelper(message, false, "UTF-8");
+            var helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(from);
             helper.setTo(email);
             helper.setSubject("Bienvenido a Rumbo, " + firstName);
