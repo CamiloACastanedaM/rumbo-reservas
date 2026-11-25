@@ -198,7 +198,7 @@ html { scrollbar-color: color-mix(in oklab, var(--paramo) 45%, transparent) tran
 .search-block .lede { margin-top: var(--space-3); max-width: 52ch; font-size: var(--step-1); color: var(--text-muted); }
 .search-form {
   margin-top: var(--space-5);
-  display: grid; grid-template-columns: 1.6fr 1fr auto; gap: 0;
+  display: grid; grid-template-columns: 1.4fr 1.2fr auto; gap: 0;
   background: var(--papel); border: 1px solid var(--rule-strong); border-radius: var(--radius-md);
   box-shadow: var(--shadow-lift);
   max-width: 56rem;
@@ -600,7 +600,7 @@ dialog::backdrop { background: color-mix(in oklab, var(--paramo-deep) 72%, trans
 .calendar-months { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
 @media (max-width: 640px) { .calendar-months { grid-template-columns: 1fr; gap: var(--space-4); } }
 .month { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
-.month caption { font-weight: 800; text-transform: capitalize; line-height: 2.25rem; margin-bottom: var(--space-2); }
+.month caption { font-weight: 800; line-height: 2.25rem; margin-bottom: var(--space-2); }
 .month th { font-family: var(--font-label); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--curva); padding-bottom: var(--space-1); }
 .month td { padding: 1px; text-align: center; }
 .day {
@@ -687,7 +687,8 @@ button.day:disabled { cursor: not-allowed; }
 .star-picker .on { color: #b7791f; }
 
 /* ---------- Share dialog ---------- */
-.share-dialog { width: min(100% - 2rem, 32rem); max-height: calc(100dvh - 2rem); overflow-y: auto; display: grid; gap: var(--space-4); }
+.share-dialog { width: min(100% - 2rem, 32rem); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+.share-dialog[open] { display: grid; gap: var(--space-4); }
 .share-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .share-preview { display: grid; grid-template-columns: 7rem 1fr; gap: var(--space-3); align-items: start; padding: var(--space-3); border: 1px solid var(--rule); border-radius: var(--radius-md); background: #fff; }
 .share-preview img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-sm); }

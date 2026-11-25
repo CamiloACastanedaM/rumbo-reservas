@@ -47,7 +47,8 @@ export default function Home() {
   return (
     <>
       <SearchBlock initial={search} onSearch={runSearch} />
-      {active && <SearchResults search={search} onClear={clearSearch} />}
+      {/* key: a new search starts again on page 1 */}
+      {active && <SearchResults key={`${search.q}|${search.start}|${search.end}`} search={search} onClear={clearSearch} />}
       <Categories categories={categories} selected={selected} onToggle={(id) => {
         toggle(id)
         document.getElementById('rec-title')?.scrollIntoView({ behavior: 'smooth' })
@@ -65,10 +66,6 @@ function SearchResults({ search, onClear }) {
   const [page, setPage] = useState(0)
   const [state, setState] = useState({ status: 'loading' })
   const [retry, setRetry] = useState(0)
-  const key = `${search.q}|${search.start}|${search.end}`
-
-  useEffect(() => { setPage(0) }, [key])
-
   useEffect(() => {
     let alive = true
     setState((s) => ({ ...s, status: 'loading' }))
@@ -78,7 +75,7 @@ function SearchResults({ search, onClear }) {
       .then((data) => alive && setState({ status: 'ok', data }))
       .catch((err) => alive && setState({ status: 'error', message: err.message }))
     return () => { alive = false }
-  }, [key, page, retry])
+  }, [search.q, search.start, search.end, page, retry])
 
   const criteria = [
     search.q && `«${search.q}»`,
