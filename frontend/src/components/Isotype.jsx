@@ -1,9 +1,9 @@
 // Rumbo isotype: three contour lines of a hill and a compass needle pointing the way.
-export default function Isotype({ tile = true, className, title }) {
+export default function Isotype({ className, title }) {
   return (
     <svg className={className} viewBox="0 0 64 64" role={title ? 'img' : undefined}
       aria-hidden={title ? undefined : true} aria-label={title}>
-      {tile && <rect width="64" height="64" rx="14" fill="#F6F8F2" />}
+      <rect width="64" height="64" rx="14" fill="#F6F8F2" />
       <g fill="none" stroke="#17402F" strokeWidth="3" strokeLinejoin="round">
         <path d="M9 40C9 23 22 12 35 13.5C49 15 56 26 54.5 38C53 49 42 55 30 54C18 53 9 49 9 40Z" />
         <path d="M17.5 38.5C17.5 28 26 21 35 22.5C43.5 24 47.5 31 46 38.5C44.5 45.5 37 48.5 29.5 47.5C22 46.5 17.5 44 17.5 38.5Z" />

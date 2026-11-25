@@ -1,14 +1,8 @@
-import { useEffect, useRef } from 'react'
+import useModalDialog from './useModalDialog.js'
 
 /** Native modal dialog: focus trap, Escape and backdrop handling come from the browser. */
 export default function ConfirmDialog({ open, title, message, confirmLabel, onConfirm, onCancel, busy }) {
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const dialog = ref.current
-    if (open && !dialog.open) dialog.showModal()
-    if (!open && dialog.open) dialog.close()
-  }, [open])
+  const ref = useModalDialog(open)
 
   return (
     <dialog ref={ref} className="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-message"

@@ -7,7 +7,7 @@ export default function AdminLayout() {
   return (
     <div className="container">
       <div className="admin-mobile-note state" role="status">
-        <Monitor size={32} aria-hidden="true" style={{ margin: '0 auto var(--space-3)' }} />
+        <Monitor size={32} aria-hidden="true" className="state-icon" />
         <p>El panel de administración no está disponible en dispositivos móviles</p>
       </div>
       <div className="admin-shell">

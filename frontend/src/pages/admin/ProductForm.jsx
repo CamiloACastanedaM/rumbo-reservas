@@ -20,8 +20,10 @@ export default function ProductForm() {
     const tooBig = picked.filter((f) => f.size > MAX_BYTES)
     if (tooBig.length) toast.error(`${tooBig.map((f) => f.name).join(', ')}: supera 10 MB.`)
     setFiles((prev) => [...prev, ...picked.filter((f) => f.size <= MAX_BYTES && ACCEPT.includes(f.type))])
-    setErrors((e) => ({ ...e, images: undefined }))
+    clearError('images')
   }
+
+  const clearError = (name) => errors[name] && setErrors((e) => ({ ...e, [name]: undefined }))
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -53,23 +55,23 @@ export default function ProductForm() {
     id: name, name, 'aria-invalid': errors[name] ? true : undefined,
     'aria-describedby': errors[name] ? `${name}-error` : undefined,
   })
-  const ErrorText = ({ name }) => errors[name] ? <p id={`${name}-error`} className="error">{errors[name]}</p> : null
+  const errorText = (name) => errors[name] && <p id={`${name}-error`} className="error">{errors[name]}</p>
 
   return (
     <>
       <h1>Agregar producto</h1>
       <p className="intro">Completa los datos del alojamiento. La primera foto será la principal.</p>
       <form className="form" onSubmit={onSubmit} noValidate
-        onInput={(e) => errors[e.target.name] && setErrors((er) => ({ ...er, [e.target.name]: undefined }))}>
+        onInput={(e) => clearError(e.target.name)}>
         <div className="field">
           <label htmlFor="name">Nombre</label>
           <input type="text" maxLength={120} {...fieldProps('name')} />
-          <ErrorText name="name" />
+          {errorText('name')}
         </div>
         <div className="field">
           <label htmlFor="description">Descripción</label>
           <textarea maxLength={2000} {...fieldProps('description')} />
-          <ErrorText name="description" />
+          {errorText('description')}
         </div>
         <div className="field-row">
           <div className="field">
@@ -83,10 +85,10 @@ export default function ProductForm() {
           <div className="field">
             <label htmlFor="pricePerNight">Precio por noche (COP) <span className="hint">(opcional)</span></label>
             <input type="number" min="0" step="1000" inputMode="numeric" {...fieldProps('pricePerNight')} />
-            <ErrorText name="pricePerNight" />
+            {errorText('pricePerNight')}
           </div>
         </div>
-        <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }} aria-describedby={errors.images ? 'images-error' : undefined}>
+        <fieldset className="field" aria-describedby={errors.images ? 'images-error' : undefined}>
           <legend>Imágenes</legend>
           <label className="dropzone"
             onDragOver={(e) => e.preventDefault()}
@@ -97,7 +99,7 @@ export default function ProductForm() {
             <input type="file" name="images" accept={ACCEPT} multiple
               onChange={(e) => { addFiles(e.target.files); e.target.value = '' }} />
           </label>
-          <ErrorText name="images" />
+          {errorText('images')}
           {files.length > 0 && (
             <ul className="previews">
               {files.map((f, i) => (

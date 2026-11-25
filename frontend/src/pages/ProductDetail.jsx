@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, MapPin } from 'lucide-react'
 import { api, formatPrice } from '../api.js'
 import Gallery from '../components/Gallery.jsx'
@@ -7,6 +7,7 @@ import Gallery from '../components/Gallery.jsx'
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [state, setState] = useState({ status: 'loading' })
 
   useEffect(() => {
@@ -19,12 +20,12 @@ export default function ProductDetail() {
   }, [id])
 
   // Back to where the visitor came from; on a direct visit go home.
-  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))
+  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/'))
 
   if (state.status !== 'ok') {
     return (
       <div className="container detail-body">
-        {state.status === 'loading' ? <div className="skeleton" style={{ minHeight: '24rem' }} aria-label="Cargando" /> : (
+        {state.status === 'loading' ? <div className="skeleton skeleton-tall" aria-label="Cargando" /> : (
           <div className="state" role="alert">
             <p>{state.message}</p>
             <Link to="/" className="btn btn-solid">Volver al inicio</Link>

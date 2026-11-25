@@ -23,6 +23,10 @@ public class ImageStorage {
         this.dir = Path.of(uploadDir).toAbsolutePath();
     }
 
+    public Path dir() {
+        return dir;
+    }
+
     /** Saves the file under a random name and returns its public path. */
     public String store(MultipartFile file) {
         String ext = EXTENSIONS.get(file.getContentType());

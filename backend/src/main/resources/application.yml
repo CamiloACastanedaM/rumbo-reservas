@@ -11,6 +11,10 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+  # data.sql is loaded by SeedRunner only into an empty database
+  sql:
+    init:
+      mode: never
   servlet:
     multipart:
       max-file-size: 10MB

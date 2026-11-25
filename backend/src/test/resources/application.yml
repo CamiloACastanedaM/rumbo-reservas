@@ -6,6 +6,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  # data.sql is loaded by SeedRunner only into an empty database
+  sql:
+    init:
+      mode: never
 app:
   seed: false
   upload-dir: target/test-uploads

@@ -11,7 +11,10 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByNameIgnoreCase(String name);
 
-    @Query("select p.id from Product p")
+    @Query("select new com.rumbo.api.product.ProductDtos$AdminRow(p.id, p.name) from Product p order by p.id")
+    List<ProductDtos.AdminRow> findAdminRows();
+
+    @Query("select p.id from Product p order by p.id")
     List<Long> findAllIds();
 
     @EntityGraph(attributePaths = {"images", "category"})

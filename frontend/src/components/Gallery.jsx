@@ -1,19 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Images, X } from 'lucide-react'
 import { imageSrc } from '../api.js'
+import useModalDialog from './useModalDialog.js'
 
 export default function Gallery({ images, name }) {
   const [current, setCurrent] = useState(null)
-  const dialog = useRef(null)
   const open = current !== null
+  const dialog = useModalDialog(open)
   const [main, ...rest] = images
-
-  useEffect(() => {
-    const d = dialog.current
-    if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
-  }, [open])
 
   if (!main) return null
   const alt = (i) => `${name}, foto ${i + 1} de ${images.length}`

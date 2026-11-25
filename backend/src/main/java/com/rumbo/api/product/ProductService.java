@@ -2,7 +2,6 @@ package com.rumbo.api.product;
 
 import com.rumbo.api.common.ApiException;
 import com.rumbo.api.product.ProductDtos.*;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,8 +27,7 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public PageResponse<ProductSummary> randomPage(long seed, int page, int size) {
-        List<Long> ids = new ArrayList<>(repository.findAllIds());
-        ids.sort(Comparator.naturalOrder());
+        List<Long> ids = new ArrayList<>(repository.findAllIds()); // mutable copy for shuffle
         Collections.shuffle(ids, new Random(seed));
         int from = Math.min(page * size, ids.size());
         List<Long> slice = ids.subList(from, Math.min(from + size, ids.size()));
@@ -48,7 +46,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<AdminRow> adminList() {
-        return repository.findAll(Sort.by("id")).stream().map(p -> new AdminRow(p.getId(), p.getName())).toList();
+        return repository.findAdminRows();
     }
 
     @Transactional
