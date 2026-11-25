@@ -4,12 +4,16 @@ import com.rumbo.api.category.CategoryRepository;
 import com.rumbo.api.common.ApiException;
 import com.rumbo.api.feature.FeatureRepository;
 import com.rumbo.api.product.ProductDtos.*;
+import com.rumbo.api.reservation.ReservationRepository;
+import com.rumbo.api.review.ReviewRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.text.Normalizer;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,13 +25,17 @@ public class ProductService {
     private final CategoryRepository categories;
     private final FeatureRepository features;
     private final ImageStorage storage;
+    private final ReviewRepository reviews;
+    private final ReservationRepository reservations;
 
     public ProductService(ProductRepository repository, CategoryRepository categories, FeatureRepository features,
-                          ImageStorage storage) {
+                          ImageStorage storage, ReviewRepository reviews, ReservationRepository reservations) {
         this.repository = repository;
         this.categories = categories;
         this.features = features;
         this.storage = storage;
+        this.reviews = reviews;
+        this.reservations = reservations;
     }
 
     /**
@@ -40,18 +48,119 @@ public class ProductService {
                 : repository.findIdsByCategoryIds(categoryIds)); // mutable copy for shuffle
         long catalogTotal = categoryIds.isEmpty() ? ids.size() : repository.count();
         Collections.shuffle(ids, new Random(seed));
-        int from = Math.min(page * size, ids.size());
-        List<Long> slice = ids.subList(from, Math.min(from + size, ids.size()));
-        Map<Long, Product> byId = repository.findByIdIn(slice).stream()
-                .collect(Collectors.toMap(Product::getId, Function.identity()));
-        List<ProductSummary> content = slice.stream().map(byId::get).map(ProductSummary::from).toList();
-        int totalPages = (int) Math.ceil(ids.size() / (double) size);
-        return new PageResponse<>(content, page, size, ids.size(), totalPages, catalogTotal);
+        return page(ids, page, size, catalogTotal);
+    }
+
+    /**
+     * Text (name, city, category, description; accents and case ignored), category and date filters.
+     * Every word must match somewhere; a match in the name weighs more than one in the description.
+     * shortcut: matches in memory over a light projection, fine for a few thousand products; move to full-text search if it grows.
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ProductSummary> search(String q, LocalDate start, LocalDate end, Collection<Long> categoryIds,
+                                               int page, int size) {
+        if ((start == null) != (end == null)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Elige la fecha de llegada y la de salida.");
+        }
+        if (start != null && start.isBefore(LocalDate.now())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "La fecha de llegada no puede ser anterior a hoy.");
+        }
+        if (start != null && !end.isAfter(start)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "La salida debe ser al menos un día después de la llegada.");
+        }
+        List<String> words = Arrays.stream(fold(q).split("\\s+")).filter(w -> !w.isEmpty()).toList();
+        Set<Long> booked = start == null ? Set.of() : reservations.findBookedProductIds(start, end);
+        record Hit(Long id, String name, int score) {
+        }
+        List<Long> ids = repository.findSearchRows().stream()
+                .filter(r -> categoryIds.isEmpty() || categoryIds.contains(r.categoryId()))
+                .filter(r -> !booked.contains(r.id()))
+                .map(r -> new Hit(r.id(), r.name(), score(r, words)))
+                .filter(h -> h.score() > 0 || words.isEmpty())
+                .sorted(Comparator.comparingInt(Hit::score).reversed().thenComparing(Hit::name))
+                .map(Hit::id).toList();
+        return page(ids, page, size, repository.count());
+    }
+
+    /** Up to 8 product names, cities and categories that contain what the visitor typed, cities first. */
+    @Transactional(readOnly = true)
+    public List<String> suggestions(String q) {
+        String typed = fold(q).trim();
+        if (typed.length() < 2) {
+            return List.of();
+        }
+        var rows = repository.findSearchRows();
+        return java.util.stream.Stream.of(
+                        rows.stream().map(SearchRow::city),
+                        rows.stream().map(SearchRow::category),
+                        rows.stream().map(SearchRow::name))
+                .flatMap(Function.identity())
+                .filter(v -> v != null && fold(v).contains(typed))
+                .distinct().limit(8).toList();
     }
 
     @Transactional(readOnly = true)
     public ProductDetail detail(Long id) {
-        return ProductDetail.from(find(id));
+        return ProductDetail.from(find(id), rating(id));
+    }
+
+    /** Booked stays from today up to one year ahead, for the availability calendar. */
+    @Transactional(readOnly = true)
+    public List<BookedRange> availability(Long id) {
+        if (!repository.existsById(id)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "No encontramos ese alojamiento.");
+        }
+        LocalDate today = LocalDate.now();
+        return reservations.findOverlapping(id, today, today.plusYears(1)).stream()
+                .map(r -> new BookedRange(r.getStartDate(), r.getEndDate())).toList();
+    }
+
+    /** Average (one decimal) and count of reviews per product; products without reviews are left out. */
+    public Map<Long, Rating> ratings(Collection<Long> productIds) {
+        if (productIds.isEmpty()) {
+            return Map.of();
+        }
+        return reviews.ratingsOf(productIds).stream().collect(Collectors.toMap(r -> (Long) r[0],
+                r -> new Rating(Math.round(((Number) r[1]).doubleValue() * 10) / 10.0, (Long) r[2])));
+    }
+
+    public Rating rating(Long productId) {
+        return ratings(List.of(productId)).getOrDefault(productId, Rating.NONE);
+    }
+
+    /** Cards for these products, in the same order as the ids. */
+    @Transactional(readOnly = true)
+    public List<ProductSummary> summaries(List<Long> ids) {
+        Map<Long, Product> byId = repository.findByIdIn(ids).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        Map<Long, Rating> rating = ratings(ids);
+        return ids.stream().filter(byId::containsKey)
+                .map(id -> ProductSummary.from(byId.get(id), rating.getOrDefault(id, Rating.NONE))).toList();
+    }
+
+    private PageResponse<ProductSummary> page(List<Long> ids, int page, int size, long catalogTotal) {
+        int from = Math.min(page * size, ids.size());
+        List<ProductSummary> content = summaries(ids.subList(from, Math.min(from + size, ids.size())));
+        int totalPages = (int) Math.ceil(ids.size() / (double) size);
+        return new PageResponse<>(content, page, size, ids.size(), totalPages, catalogTotal);
+    }
+
+    private static int score(SearchRow r, List<String> words) {
+        int total = 0;
+        for (String w : words) {
+            int s = (fold(r.name()).contains(w) ? 4 : 0) + (fold(r.city()).contains(w) ? 3 : 0)
+                    + (fold(r.category()).contains(w) ? 2 : 0) + (fold(r.description()).contains(w) ? 1 : 0);
+            if (s == 0) {
+                return 0;
+            }
+            total += s;
+        }
+        return total;
+    }
+
+    /** Lower case without accents, so "medellin" finds "Medellín". */
+    static String fold(String s) {
+        return s == null ? "" : Normalizer.normalize(s, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
     }
 
     @Transactional(readOnly = true)
@@ -102,6 +211,7 @@ public class ProductService {
         if (!repository.existsById(id)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Ese producto ya no existe.");
         }
+        repository.deleteFavoritesOf(id); // reviews and reservations go with the product (ON DELETE CASCADE)
         repository.deleteById(id);
     }
 
@@ -124,13 +234,22 @@ public class ProductService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Alguna característica ya no existe. Recarga la página.");
         }
         product.setFeatures(new HashSet<>(found));
+        List<String> titles = form.policyTitles() == null ? List.of() : form.policyTitles();
+        List<String> texts = form.policyDescriptions() == null ? List.of() : form.policyDescriptions();
+        product.getPolicies().clear();
+        for (int i = 0; i < Math.min(titles.size(), texts.size()); i++) {
+            if (!titles.get(i).isBlank() && !texts.get(i).isBlank()) {
+                product.addPolicy(titles.get(i).trim(), texts.get(i).trim());
+            }
+        }
     }
 
     private ProductDetail saveWithImages(Product product, List<MultipartFile> files) {
         List<String> stored = files.stream().map(storage::store).toList();
         stored.forEach(product::addImage);
         try {
-            return ProductDetail.from(repository.saveAndFlush(product));
+            Product saved = repository.saveAndFlush(product);
+            return ProductDetail.from(saved, rating(saved.getId()));
         } catch (DataIntegrityViolationException e) {
             // The unique index also ignores accents (MySQL collation), and catches concurrent saves.
             storage.deleteQuietly(stored);

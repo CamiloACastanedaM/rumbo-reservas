@@ -54,6 +54,10 @@ public class Product {
             inverseJoinColumns = @JoinColumn(name = "feature_id"))
     private Set<Feature> features = new HashSet<>();
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<Policy> policies = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -63,5 +67,13 @@ public class Product {
         image.setUrl(url);
         image.setPosition(images.size());
         images.add(image);
+    }
+
+    public void addPolicy(String title, String description) {
+        Policy policy = new Policy();
+        policy.setProduct(this);
+        policy.setTitle(title);
+        policy.setDescription(description);
+        policies.add(policy);
     }
 }

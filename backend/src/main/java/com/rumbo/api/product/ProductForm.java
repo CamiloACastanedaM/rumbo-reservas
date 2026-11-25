@@ -18,5 +18,8 @@ public record ProductForm(
         Long categoryId,
         List<Long> featureIds,
         /** On edit: existing image URLs to keep, in order. New uploads are appended after them. */
-        List<String> keepImages) {
+        List<String> keepImages,
+        /** Policies as two parallel lists (same index = same policy), easy to send in a multipart form. */
+        List<@Size(max = 80, message = "El título de la política admite hasta 80 caracteres.") String> policyTitles,
+        List<@Size(max = 1000, message = "La descripción de la política admite hasta 1000 caracteres.") String> policyDescriptions) {
 }

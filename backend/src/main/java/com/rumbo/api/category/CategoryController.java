@@ -2,6 +2,7 @@ package com.rumbo.api.category;
 
 import com.rumbo.api.common.ApiException;
 import com.rumbo.api.product.ImageStorage;
+import com.rumbo.api.product.ProductRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,10 +22,12 @@ public class CategoryController {
     private static final String TITLE_IN_USE = "Ya existe una categoría con ese título.";
     private final CategoryRepository repository;
     private final ImageStorage storage;
+    private final ProductRepository products;
 
-    public CategoryController(CategoryRepository repository, ImageStorage storage) {
+    public CategoryController(CategoryRepository repository, ImageStorage storage, ProductRepository products) {
         this.repository = repository;
         this.storage = storage;
+        this.products = products;
     }
 
     public record CategoryForm(
@@ -58,6 +62,21 @@ public class CategoryController {
         } catch (DataIntegrityViolationException e) {
             storage.deleteQuietly(List.of(category.getImageUrl()));
             throw new ApiException(HttpStatus.CONFLICT, TITLE_IN_USE);
+        }
+    }
+
+    /** Its products stay published, without a category. */
+    @DeleteMapping("/admin/categories/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void delete(@PathVariable Long id) {
+        Category category = repository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Esa categoría ya no existe."));
+        products.clearCategory(id);
+        repository.delete(category);
+        repository.flush();
+        if (category.getImageUrl() != null && category.getImageUrl().startsWith("/uploads/")) {
+            storage.deleteQuietly(List.of(category.getImageUrl()));
         }
     }
 }

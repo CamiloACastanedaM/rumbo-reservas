@@ -2,6 +2,7 @@ package com.rumbo.api.product;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
@@ -19,6 +20,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("select p.id from Product p where p.category.id in :categoryIds order by p.id")
     List<Long> findIdsByCategoryIds(Collection<Long> categoryIds);
+
+    @Query("select new com.rumbo.api.product.ProductDtos$SearchRow(p.id, p.name, p.city, p.description, c.id, c.title) from Product p left join p.category c")
+    List<ProductDtos.SearchRow> findSearchRows();
+
+    @Query("select count(x) from Policy x")
+    long countPolicies();
+
+    @Modifying
+    @Query(value = "delete from favorites where product_id = :productId", nativeQuery = true)
+    void deleteFavoritesOf(Long productId);
+
+    @Modifying
+    @Query("update Product p set p.category = null where p.category.id = :categoryId")
+    int clearCategory(Long categoryId);
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 

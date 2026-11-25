@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.LinkedHashMap;
@@ -31,6 +32,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ApiError> handle(HttpMessageNotReadableException e) {
         return ResponseEntity.badRequest().body(new ApiError(400, "La solicitud no tiene un formato válido.", Map.of()));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ApiError> handle(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.badRequest().body(new ApiError(400, "Algún dato de la solicitud no tiene un formato válido.", Map.of()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

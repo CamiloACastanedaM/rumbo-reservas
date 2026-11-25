@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -24,6 +25,26 @@ public class ProductController {
                                                @RequestParam(defaultValue = "0") long seed,
                                                @RequestParam(defaultValue = "") List<Long> categoryIds) {
         return service.randomPage(seed, Math.max(page, 0), Math.clamp(size, 1, 10), categoryIds);
+    }
+
+    @GetMapping("/products/search")
+    public PageResponse<ProductSummary> search(@RequestParam(defaultValue = "") String q,
+                                               @RequestParam(required = false) LocalDate start,
+                                               @RequestParam(required = false) LocalDate end,
+                                               @RequestParam(defaultValue = "") List<Long> categoryIds,
+                                               @RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "10") int size) {
+        return service.search(q, start, end, categoryIds, Math.max(page, 0), Math.clamp(size, 1, 10));
+    }
+
+    @GetMapping("/products/suggestions")
+    public List<String> suggestions(@RequestParam(defaultValue = "") String q) {
+        return service.suggestions(q);
+    }
+
+    @GetMapping("/products/{id}/availability")
+    public List<BookedRange> availability(@PathVariable Long id) {
+        return service.availability(id);
     }
 
     @GetMapping("/products/{id}")
