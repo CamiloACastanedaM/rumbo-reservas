@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <>
       {/* key: back/forward or a cleared search refills the fields from the URL */}
-      <SearchBlock key={`${search.q}|${search.start}|${search.end}`} initial={search} onSearch={runSearch} />
+      <SearchBlock key={`form|${search.q}|${search.start}|${search.end}`} initial={search} onSearch={runSearch} />
       {/* key: a new search starts again on page 1 */}
       {active && <SearchResults key={`${search.q}|${search.start}|${search.end}`} search={search} onClear={clearSearch} />}
       <Categories categories={categories} selected={selected} onToggle={(id) => {
