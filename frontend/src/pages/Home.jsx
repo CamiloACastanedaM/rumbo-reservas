@@ -137,7 +137,7 @@ function Recommendations({ categories, selected, onToggle, onClear }) {
             <ul className="chips">
               {categories.map((c) => (
                 <li key={c.id}>
-                  <button type="button" className="chip" aria-pressed={selected.includes(c.id)} onClick={() => onToggle(c.id)}>
+                  <button type="button" className="chip" title={c.title} aria-pressed={selected.includes(c.id)} onClick={() => onToggle(c.id)}>
                     {c.title}
                   </button>
                 </li>
