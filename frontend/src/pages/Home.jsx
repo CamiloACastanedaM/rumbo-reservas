@@ -103,7 +103,7 @@ function Recommendations() {
       <div className="container">
         <div className="section-head">
           <h2 id="rec-title" className="section-title">Recomendaciones</h2>
-          {state.data && <p className="section-note">{state.data.totalElements} alojamientos</p>}
+          {state.data && <p className="section-note">{state.data.totalElements} {state.data.totalElements === 1 ? 'alojamiento' : 'alojamientos'}</p>}
         </div>
         {state.status === 'error' ? (
           <div className="state" role="alert">

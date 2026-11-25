@@ -95,6 +95,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 img { display: block; max-width: 100%; }
+img[hidden] { display: none; }
 h1, h2, h3 { line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.015em; }
 p { margin: 0; text-wrap: pretty; }
 a { color: var(--rio); text-underline-offset: 0.2em; }
@@ -119,9 +120,10 @@ html { scrollbar-color: color-mix(in oklab, var(--paramo) 45%, transparent) tran
   text-transform: uppercase;
   color: var(--curva);
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.35em;
 }
+.map-label svg { flex: none; margin-top: 0.15em; }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -252,7 +254,8 @@ html { scrollbar-color: color-mix(in oklab, var(--paramo) 45%, transparent) tran
 }
 .product-card:hover { border-color: var(--rule-strong); box-shadow: var(--shadow-lift); transform: translateY(-2px); }
 .product-card { min-height: 12.5rem; }
-.product-card .photo { position: relative; overflow: hidden; background: var(--frailejon); }
+/* No photo or a broken one: the map field stands in. */
+.product-card .photo { position: relative; overflow: hidden; background: var(--frailejon) url("/contours.svg") center / 900px; }
 .product-card .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 500ms var(--ease-out); }
 .product-card:hover .photo img { transform: scale(1.04); }
 .product-card .body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
@@ -295,7 +298,7 @@ html { scrollbar-color: color-mix(in oklab, var(--paramo) 45%, transparent) tran
 .detail-body { padding-block: var(--space-6) var(--space-8); display: grid; gap: var(--space-6); }
 .detail-info { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); align-items: start; }
 .detail-info h2 { font-size: var(--step-2); font-weight: 800; margin-bottom: var(--space-3); }
-.detail-info .description { max-width: 68ch; font-size: 1.0625rem; }
+.detail-info .description { max-width: 68ch; font-size: 1.0625rem; white-space: pre-line; overflow-wrap: anywhere; }
 .price-panel { background: var(--papel); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); min-width: 15rem; }
 .price-panel strong { display: block; font-size: var(--step-2); font-variant-numeric: tabular-nums; }
 .price-panel .muted { color: var(--text-muted); font-size: 0.875rem; }
@@ -308,6 +311,17 @@ html { scrollbar-color: color-mix(in oklab, var(--paramo) 45%, transparent) tran
 .gallery-main:hover img, .gallery-grid button:hover img { transform: scale(1.03); filter: brightness(1.05); }
 .gallery-main { aspect-ratio: 4 / 3; }
 .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: var(--space-2); }
+/* Thumbnails fill their cell, so the grid always matches the main photo's height. */
+.gallery-grid button { position: relative; min-height: 0; }
+.gallery-grid img { position: absolute; inset: 0; }
+/* Fewer than 5 photos: fill the block instead of leaving empty cells. */
+@media (min-width: 901px) {
+  .gallery-single { grid-template-columns: 1fr; }
+  .gallery-single .gallery-main { aspect-ratio: 21 / 9; }
+  .gallery-grid[data-count="1"] { grid-template: 1fr / 1fr; }
+  .gallery-grid[data-count="2"] { grid-template: 1fr 1fr / 1fr; }
+  .gallery-grid[data-count="3"] > :first-child { grid-column: span 2; }
+}
 .gallery-more { position: absolute; right: var(--space-4); bottom: var(--space-4); }
 .gallery-more.btn { background: var(--papel); color: var(--paramo); border-color: var(--rule-strong); box-shadow: var(--shadow-lift); }
 .gallery-more.btn:hover { background: #fff; }

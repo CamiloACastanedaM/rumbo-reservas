@@ -24,12 +24,12 @@ export default function Gallery({ images, name }) {
   }
 
   return (
-    <section className="gallery" aria-label="Galería de fotos">
+    <section className={rest.length ? 'gallery' : 'gallery gallery-single'} aria-label="Galería de fotos">
       <button type="button" className="gallery-main" onClick={() => setCurrent(0)} aria-label={`Ampliar ${alt(0)}`}>
         <img src={imageSrc(main)} alt={alt(0)} />
       </button>
       {rest.length > 0 && (
-        <div className="gallery-grid">
+        <div className="gallery-grid" data-count={Math.min(rest.length, 4)}>
           {rest.slice(0, 4).map((src, i) => (
             <button type="button" key={src} onClick={() => setCurrent(i + 1)} aria-label={`Ampliar ${alt(i + 1)}`}>
               <img src={imageSrc(src)} alt={alt(i + 1)} loading="lazy" />

@@ -35,7 +35,7 @@ export default function ProductList() {
   return (
     <>
       <h1>Lista de productos</h1>
-      <p className="intro">{rows ? `${rows.length} productos registrados.` : 'Cargando productos…'}</p>
+      <p className="intro">{rows ? `${rows.length} ${rows.length === 1 ? 'producto registrado' : 'productos registrados'}.` : 'Cargando productos…'}</p>
       {error && (
         <div className="state" role="alert">
           <p>{error}</p>

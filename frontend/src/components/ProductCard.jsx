@@ -7,7 +7,8 @@ export default function ProductCard({ product }) {
   return (
     <Link to={`/producto/${product.id}`} className="product-card">
       <div className="photo">
-        {product.mainImage && <img src={imageSrc(product.mainImage)} alt="" loading="lazy" />}
+        {product.mainImage && <img src={imageSrc(product.mainImage)} alt="" loading="lazy"
+          onError={(e) => { e.currentTarget.hidden = true }} />}
       </div>
       <div className="body">
         {product.category && <span className="tag">{product.category}</span>}
