@@ -88,7 +88,12 @@ function Recommendations() {
     let alive = true
     setState((s) => ({ ...s, status: 'loading' }))
     api(`/products?page=${page}&size=10&seed=${seed}`)
-      .then((data) => alive && setState({ status: 'ok', data }))
+      .then((data) => {
+        if (!alive) return
+        // A stale ?pagina past the last page: go back to the first one instead of a false empty state.
+        if (data.content.length === 0 && data.totalElements > 0) setParams({}, { replace: true })
+        else setState({ status: 'ok', data })
+      })
       .catch((err) => alive && setState({ status: 'error', message: err.message }))
     return () => { alive = false }
   }, [page, retry])

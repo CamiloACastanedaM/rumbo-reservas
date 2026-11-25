@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -25,6 +26,17 @@ public class ImageStorage {
 
     public Path dir() {
         return dir;
+    }
+
+    /** Removes files saved by {@link #store} when the product they belong to could not be saved. */
+    public void deleteQuietly(List<String> publicPaths) {
+        for (String path : publicPaths) {
+            try {
+                Files.deleteIfExists(dir.resolve(path.substring(path.lastIndexOf('/') + 1)));
+            } catch (IOException ignored) {
+                // best effort: an orphan file is harmless
+            }
+        }
     }
 
     /** Saves the file under a random name and returns its public path. */

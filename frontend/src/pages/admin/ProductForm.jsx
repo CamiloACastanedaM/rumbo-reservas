@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ImagePlus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../api.js'
 import { ADMIN } from './AdminLayout.jsx'
 
-const ACCEPT = 'image/jpeg,image/png,image/webp,image/avif'
+const TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
 const MAX_BYTES = 10 * 1024 * 1024
 
 export default function ProductForm() {
@@ -17,9 +17,11 @@ export default function ProductForm() {
 
   const addFiles = (list) => {
     const picked = [...list]
-    const tooBig = picked.filter((f) => f.size > MAX_BYTES)
+    const wrongType = picked.filter((f) => !TYPES.includes(f.type))
+    const tooBig = picked.filter((f) => TYPES.includes(f.type) && f.size > MAX_BYTES)
+    if (wrongType.length) toast.error(`${wrongType.map((f) => f.name).join(', ')}: usa JPG, PNG, WebP o AVIF.`)
     if (tooBig.length) toast.error(`${tooBig.map((f) => f.name).join(', ')}: supera 10 MB.`)
-    setFiles((prev) => [...prev, ...picked.filter((f) => f.size <= MAX_BYTES && ACCEPT.includes(f.type))])
+    setFiles((prev) => [...prev, ...picked.filter((f) => TYPES.includes(f.type) && f.size <= MAX_BYTES)])
     clearError('images')
   }
 
@@ -96,7 +98,7 @@ export default function ProductForm() {
             <ImagePlus size={28} aria-hidden="true" />
             <span><strong>Elige una o varias fotos</strong> o arrástralas aquí</span>
             <span className="hint">JPG, PNG, WebP o AVIF, hasta 10 MB cada una</span>
-            <input type="file" name="images" accept={ACCEPT} multiple
+            <input type="file" name="images" accept={TYPES.join(',')} multiple
               onChange={(e) => { addFiles(e.target.files); e.target.value = '' }} />
           </label>
           {errorText('images')}
@@ -125,11 +127,7 @@ export default function ProductForm() {
 }
 
 function useObjectUrls(files) {
-  const [urls, setUrls] = useState([])
-  useEffect(() => {
-    const next = files.map((f) => URL.createObjectURL(f))
-    setUrls(next)
-    return () => next.forEach(URL.revokeObjectURL)
-  }, [files])
+  const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files])
+  useEffect(() => () => urls.forEach(URL.revokeObjectURL), [urls])
   return urls
 }

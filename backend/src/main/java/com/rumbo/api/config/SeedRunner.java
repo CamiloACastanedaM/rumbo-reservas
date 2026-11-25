@@ -15,16 +15,18 @@ import javax.sql.DataSource;
 @ConditionalOnProperty(name = "app.seed", havingValue = "true", matchIfMissing = true)
 public class SeedRunner implements ApplicationRunner {
     private final CategoryRepository categories;
+    private final com.rumbo.api.product.ProductRepository products;
     private final DataSource dataSource;
 
-    public SeedRunner(CategoryRepository categories, DataSource dataSource) {
+    public SeedRunner(CategoryRepository categories, com.rumbo.api.product.ProductRepository products, DataSource dataSource) {
         this.categories = categories;
+        this.products = products;
         this.dataSource = dataSource;
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        if (categories.count() == 0) {
+        if (categories.count() == 0 && products.count() == 0) {
             new ResourceDatabasePopulator(new ClassPathResource("data.sql")).execute(dataSource);
         }
     }

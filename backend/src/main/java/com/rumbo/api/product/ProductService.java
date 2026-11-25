@@ -2,6 +2,7 @@ package com.rumbo.api.product;
 
 import com.rumbo.api.common.ApiException;
 import com.rumbo.api.product.ProductDtos.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
+    private static final String NAME_IN_USE = "El nombre ya está en uso. Elige otro nombre para el producto.";
     private final ProductRepository repository;
     private final ImageStorage storage;
 
@@ -53,7 +55,7 @@ public class ProductService {
     public ProductDetail create(ProductForm form, List<MultipartFile> images) {
         String name = form.name().trim();
         if (repository.existsByNameIgnoreCase(name)) {
-            throw new ApiException(HttpStatus.CONFLICT, "El nombre ya está en uso. Elige otro nombre para el producto.");
+            throw new ApiException(HttpStatus.CONFLICT, NAME_IN_USE);
         }
         List<MultipartFile> files = images == null ? List.of() : images.stream().filter(f -> !f.isEmpty()).toList();
         if (files.isEmpty()) {
@@ -65,8 +67,15 @@ public class ProductService {
         product.setCity(blankToNull(form.city()));
         product.setAddress(blankToNull(form.address()));
         product.setPricePerNight(form.pricePerNight());
-        files.forEach(f -> product.addImage(storage.store(f)));
-        return ProductDetail.from(repository.save(product));
+        List<String> stored = files.stream().map(storage::store).toList();
+        stored.forEach(product::addImage);
+        try {
+            return ProductDetail.from(repository.saveAndFlush(product));
+        } catch (DataIntegrityViolationException e) {
+            // The unique index also ignores accents (MySQL collation), and catches concurrent creates.
+            storage.deleteQuietly(stored);
+            throw new ApiException(HttpStatus.CONFLICT, NAME_IN_USE);
+        }
     }
 
     @Transactional
