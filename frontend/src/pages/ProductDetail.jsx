@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, MapPin } from 'lucide-react'
+import { ArrowLeft, MapPin, Share2 } from 'lucide-react'
 import { api, formatPrice } from '../api.js'
 import Gallery from '../components/Gallery.jsx'
 import FeatureIcon from '../components/FeatureIcon.jsx'
+import Availability from '../components/Availability.jsx'
+import FavoriteButton from '../components/FavoriteButton.jsx'
+import Reviews from '../components/Reviews.jsx'
+import ShareDialog from '../components/ShareDialog.jsx'
+import { RatingSummary } from '../components/Rating.jsx'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const [state, setState] = useState({ status: 'loading' })
+  const [sharing, setSharing] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -38,6 +44,12 @@ export default function ProductDetail() {
 
   const { product } = state
   const price = formatPrice(product.pricePerNight)
+  // Same shape as the home cards, so the favorites list can show it right away.
+  const summary = {
+    id: product.id, name: product.name, city: product.city, pricePerNight: product.pricePerNight,
+    mainImage: product.images[0] ?? null, category: product.category?.title ?? null, rating: product.rating,
+  }
+  const setRating = (rating) => setState((s) => ({ ...s, product: { ...s.product, rating } }))
   return (
     <article>
       <header className="detail-head">
@@ -52,6 +64,15 @@ export default function ProductDetail() {
         </div>
       </header>
       <div className="container detail-body">
+        <div className="detail-actions">
+          <a href="#resenas" className="rating-link"><RatingSummary rating={product.rating} /></a>
+          <div className="detail-buttons">
+            <FavoriteButton product={summary} className="fav-inline" />
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSharing(true)}>
+              <Share2 size={16} aria-hidden="true" /> Compartir
+            </button>
+          </div>
+        </div>
         <Gallery images={product.images} name={product.name} />
         <div className="detail-info">
           <div className="detail-main">
@@ -80,7 +101,25 @@ export default function ProductDetail() {
             </aside>
           )}
         </div>
+        <Availability productId={product.id} />
+        <Reviews productId={product.id} onRating={setRating} />
+        <section className="policies-block" aria-labelledby="policies-title">
+          <h2 id="policies-title">Políticas del alojamiento</h2>
+          {product.policies.length === 0 ? (
+            <p className="muted">El anfitrión todavía no ha publicado sus políticas. Pregúntale antes de reservar.</p>
+          ) : (
+            <ul className="policy-list">
+              {product.policies.map((x, i) => (
+                <li key={i}>
+                  <h3>{x.title}</h3>
+                  <p>{x.description}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
+      <ShareDialog open={sharing} onClose={() => setSharing(false)} product={product} />
     </article>
   )
 }

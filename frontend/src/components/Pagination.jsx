@@ -1,12 +1,12 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft } from 'lucide-react'
 
 /** page is 0-based; the counter shows it 1-based. */
-export default function Pagination({ page, totalPages, onChange }) {
+export default function Pagination({ page, totalPages, onChange, label = 'Paginación de recomendaciones' }) {
   if (totalPages <= 1) return null
   const isFirst = page === 0
   const isLast = page >= totalPages - 1
   return (
-    <nav className="pagination" aria-label="Paginación de recomendaciones">
+    <nav className="pagination" aria-label={label}>
       <button type="button" className="btn btn-ghost btn-sm" disabled={isFirst} onClick={() => onChange(0)}>
         <ChevronsLeft size={16} aria-hidden="true" /> Primera página
       </button>

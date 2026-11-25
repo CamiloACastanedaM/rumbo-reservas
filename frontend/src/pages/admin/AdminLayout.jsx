@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { FolderPlus, List, Monitor, PlusSquare, ShieldAlert, Sparkles, Users } from 'lucide-react'
+import { FolderPlus, Folders, List, Monitor, PlusSquare, ShieldAlert, Sparkles, Users } from 'lucide-react'
 import { useAuth } from '../../auth.jsx'
 
 export const ADMIN = '/administracion'
@@ -8,6 +8,7 @@ const MENU = [
   { to: 'productos/nuevo', label: 'Agregar producto', Icon: PlusSquare },
   { to: 'productos', label: 'Lista de productos', Icon: List, end: true },
   { to: 'categorias/nueva', label: 'Agregar categoría', Icon: FolderPlus },
+  { to: 'categorias', label: 'Lista de categorías', Icon: Folders, end: true },
   { to: 'caracteristicas', label: 'Administrar características', Icon: Sparkles },
   { to: 'usuarios', label: 'Usuarios y permisos', Icon: Users },
 ]

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { X } from 'lucide-react'
-import { toast } from 'sonner'
+import { SearchX, X } from 'lucide-react'
 import { api, imageSrc } from '../api.js'
 import ProductCard from '../components/ProductCard.jsx'
 import Pagination from '../components/Pagination.jsx'
+import SearchBlock from '../components/SearchBlock.jsx'
+import { formatShort } from '../components/DateRangeCalendar.jsx'
 
 // One random seed per page load: a reload reshuffles, while paging and coming back from a detail keep the order.
 const seed = crypto.getRandomValues(new Uint32Array(1))[0]
@@ -18,12 +19,35 @@ export default function Home() {
 
   // Selected categories live in the URL (?categorias=1,3) so a reload or a shared link keeps the filter.
   const selected = (params.get('categorias') ?? '').split(',').filter(Boolean).map(Number).filter(Number.isInteger)
-  const setSelected = (ids) => setParams(ids.length ? { categorias: ids.join(',') } : {})
+  const setSelected = (ids) => setParams((prev) => {
+    const next = new URLSearchParams(prev)
+    next.delete('pagina')
+    if (ids.length) next.set('categorias', ids.join(','))
+    else next.delete('categorias')
+    return next
+  })
   const toggle = (id) => setSelected(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
+
+  // The search also lives in the URL (?buscar=&llegada=&salida=), so back/forward and shared links work.
+  const search = { q: params.get('buscar') ?? '', start: params.get('llegada'), end: params.get('salida') }
+  const active = Boolean(search.q || (search.start && search.end))
+  const runSearch = ({ q, start, end }) => {
+    setParams((prev) => {
+      const next = new URLSearchParams(prev)
+      for (const [key, val] of [['buscar', q], ['llegada', start], ['salida', end]]) {
+        if (val) next.set(key, val)
+        else next.delete(key)
+      }
+      return next
+    })
+    requestAnimationFrame(() => document.getElementById('results-title')?.scrollIntoView({ behavior: 'smooth' }))
+  }
+  const clearSearch = () => runSearch({ q: '', start: null, end: null })
 
   return (
     <>
-      <SearchBlock />
+      <SearchBlock initial={search} onSearch={runSearch} />
+      {active && <SearchResults search={search} onClear={clearSearch} />}
       <Categories categories={categories} selected={selected} onToggle={(id) => {
         toggle(id)
         document.getElementById('rec-title')?.scrollIntoView({ behavior: 'smooth' })
@@ -34,27 +58,77 @@ export default function Home() {
   )
 }
 
-function SearchBlock() {
-  const onSubmit = (e) => {
-    e.preventDefault()
-    toast('Muy pronto podrás buscar por destino y fechas. Mientras tanto, mira nuestras recomendaciones.')
-  }
+const resultWord = (n) => `${n} ${n === 1 ? 'alojamiento' : 'alojamientos'}`
+
+/** Results of the search block. Categories and recommendations stay below, as on the plain home. */
+function SearchResults({ search, onClear }) {
+  const [page, setPage] = useState(0)
+  const [state, setState] = useState({ status: 'loading' })
+  const [retry, setRetry] = useState(0)
+  const key = `${search.q}|${search.start}|${search.end}`
+
+  useEffect(() => { setPage(0) }, [key])
+
+  useEffect(() => {
+    let alive = true
+    setState((s) => ({ ...s, status: 'loading' }))
+    const query = new URLSearchParams({ q: search.q, page, size: 10 })
+    if (search.start && search.end) { query.set('start', search.start); query.set('end', search.end) }
+    api(`/products/search?${query}`)
+      .then((data) => alive && setState({ status: 'ok', data }))
+      .catch((err) => alive && setState({ status: 'error', message: err.message }))
+    return () => { alive = false }
+  }, [key, page, retry])
+
+  const criteria = [
+    search.q && `«${search.q}»`,
+    search.start && search.end && `del ${formatShort(search.start)} al ${formatShort(search.end)}`,
+  ].filter(Boolean).join(', ')
+
   return (
-    <section className="search-block" aria-labelledby="search-title">
+    <section className="page-section results-section" aria-labelledby="results-title">
       <div className="container">
-        <h1 id="search-title">Encuentra tu próximo rumbo</h1>
-        <p className="lede">Cabañas, glamping, fincas y hoteles con encanto en toda Colombia. Elige el destino y las fechas, nosotros te mostramos qué está libre.</p>
-        <form className="search-form" role="search" onSubmit={onSubmit}>
-          <div className="search-field">
-            <label htmlFor="q">Destino o alojamiento</label>
-            <input id="q" name="q" type="text" placeholder="Salento, Cartagena, glamping…" autoComplete="off" />
+        <div className="section-head">
+          <div>
+            <h2 id="results-title" className="section-title">Resultados de tu búsqueda</h2>
+            <p className="section-note" role="status">
+              {state.data ? `${resultWord(state.data.totalElements)} para ${criteria}` : `Buscando ${criteria}…`}
+              {state.data && search.start && ' · solo alojamientos libres en esas fechas'}
+            </p>
           </div>
-          <div className="search-field">
-            <label htmlFor="dates">Fechas</label>
-            <input id="dates" name="dates" type="text" placeholder="Llegada – salida" readOnly />
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClear}>
+            <X size={16} aria-hidden="true" /> Limpiar búsqueda
+          </button>
+        </div>
+        {state.status === 'error' ? (
+          <div className="state" role="alert">
+            <p>{state.message}</p>
+            <button type="button" className="btn btn-solid" onClick={() => setRetry((r) => r + 1)}>Reintentar</button>
           </div>
-          <button type="submit" className="btn btn-route">Realizar búsqueda</button>
-        </form>
+        ) : !state.data ? (
+          <div className="product-grid" aria-hidden="true">
+            {Array.from({ length: 2 }, (_, i) => <div key={i} className="skeleton" />)}
+          </div>
+        ) : state.data.content.length === 0 ? (
+          <div className="state">
+            <SearchX size={32} aria-hidden="true" className="state-icon" />
+            <p>No encontramos alojamientos para {criteria}.</p>
+            <p className="muted">Prueba con otra ciudad, menos palabras u otras fechas.</p>
+            <button type="button" className="btn btn-solid" onClick={onClear}>Limpiar búsqueda</button>
+          </div>
+        ) : (
+          <>
+            <ul className="product-grid" aria-busy={state.status === 'loading'}>
+              {state.data.content.map((p, i) => (
+                <li key={p.id} style={{ '--i': i }}><ProductCard product={p} /></li>
+              ))}
+            </ul>
+            <Pagination label="Paginación de resultados" page={state.data.page} totalPages={state.data.totalPages} onChange={(p) => {
+              setPage(p)
+              document.getElementById('results-title')?.scrollIntoView({ behavior: 'smooth' })
+            }} />
+          </>
+        )}
       </div>
     </section>
   )

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ImagePlus, X } from 'lucide-react'
+import { ImagePlus, Plus, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api, imageSrc } from '../../api.js'
 import FeatureIcon from '../../components/FeatureIcon.jsx'
@@ -19,6 +19,7 @@ export default function ProductForm() {
   const [options, setOptions] = useState(null)
   const [kept, setKept] = useState([])
   const [files, setFiles] = useState([])
+  const [policies, setPolicies] = useState([])
   const [errors, setErrors] = useState({})
   const [sending, setSending] = useState(false)
   const previews = useObjectUrls(files)
@@ -32,7 +33,7 @@ export default function ProductForm() {
   useEffect(() => {
     if (!editing) return
     api(`/products/${id}`)
-      .then((p) => { setProduct(p); setKept(p.images) })
+      .then((p) => { setProduct(p); setKept(p.images); setPolicies(p.policies.map((x, i) => ({ ...x, key: i }))) })
       .catch((e) => setLoadError(e.message))
   }, [editing, id])
 
@@ -150,6 +151,34 @@ export default function ProductForm() {
               ))}
             </ul>
           )}
+        </fieldset>
+        <fieldset className="field">
+          <legend>Políticas</legend>
+          <p className="hint">Normas de la casa, salud y seguridad, cancelación… Se muestran en columnas en el detalle. Las filas sin título o sin descripción no se guardan.</p>
+          {policies.length > 0 && (
+            <ul className="policy-rows">
+              {policies.map((x, i) => (
+                <li key={x.key}>
+                  <div className="field">
+                    <label htmlFor={`policy-title-${x.key}`}>Título de la política {i + 1}</label>
+                    <input id={`policy-title-${x.key}`} type="text" name="policyTitles" maxLength={80} defaultValue={x.title} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`policy-text-${x.key}`}>Descripción</label>
+                    <textarea id={`policy-text-${x.key}`} name="policyDescriptions" maxLength={1000} rows={3} defaultValue={x.description} />
+                  </div>
+                  <button type="button" className="btn btn-ghost btn-sm" aria-label={`Quitar política ${i + 1}`}
+                    onClick={() => setPolicies((list) => list.filter((y) => y.key !== x.key))}>
+                    <Trash2 size={16} aria-hidden="true" /> Quitar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button type="button" className="btn btn-ghost btn-sm btn-start"
+            onClick={() => setPolicies((list) => [...list, { title: '', description: '', key: Date.now() }])}>
+            <Plus size={16} aria-hidden="true" /> Agregar política
+          </button>
         </fieldset>
         <fieldset className="field" aria-describedby={errors.images ? 'images-error' : undefined}>
           <legend>Imágenes</legend>

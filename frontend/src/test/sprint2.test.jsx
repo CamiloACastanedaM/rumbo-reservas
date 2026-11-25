@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '../auth.jsx'
+import { FavoritesProvider } from '../favorites.jsx'
 import { readSession, writeSession } from '../api.js'
 import Header from '../components/Header.jsx'
 import Register from '../pages/Register.jsx'
@@ -27,12 +28,14 @@ function mockApi(routes) {
 const app = (path, element, routePath = '*') => render(
   <MemoryRouter initialEntries={[path]}>
     <AuthProvider>
-      <Header />
-      <Routes>
-        <Route path={routePath} element={element} />
-        <Route path="/iniciar-sesion" element={<Login />} />
-        <Route path="/" element={<p>Inicio</p>} />
-      </Routes>
+      <FavoritesProvider>
+        <Header />
+        <Routes>
+          <Route path={routePath} element={element} />
+          <Route path="/iniciar-sesion" element={<Login />} />
+          <Route path="/" element={<p>Inicio</p>} />
+        </Routes>
+      </FavoritesProvider>
     </AuthProvider>
   </MemoryRouter>,
 )
@@ -132,6 +135,7 @@ describe('Features in detail (#18) and category filter (#20)', () => {
       '/products/5': () => json({
         id: 5, name: 'Cabaña', description: 'd', images: ['https://img/1.jpg'], category: null,
         features: [{ id: 1, name: 'Wifi', icon: 'wifi' }, { id: 2, name: 'Piscina', icon: 'waves' }],
+        policies: [], rating: { average: 0, count: 0 },
       }),
     })
     app('/producto/5', <ProductDetail />, '/producto/:id')

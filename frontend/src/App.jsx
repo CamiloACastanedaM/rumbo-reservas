@@ -12,6 +12,8 @@ import FeatureAdmin from './pages/admin/FeatureAdmin.jsx'
 import UserAdmin from './pages/admin/UserAdmin.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import Favorites from './pages/Favorites.jsx'
+import CategoryList from './pages/admin/CategoryList.jsx'
 
 const adminRoutes = (
   <>
@@ -19,6 +21,7 @@ const adminRoutes = (
     <Route path="productos" element={<ProductList />} />
     <Route path="productos/nuevo" element={<ProductForm key="new" />} />
     <Route path="productos/:id/editar" element={<ProductForm key="edit" />} />
+    <Route path="categorias" element={<CategoryList />} />
     <Route path="categorias/nueva" element={<CategoryForm />} />
     <Route path="caracteristicas" element={<FeatureAdmin />} />
     <Route path="usuarios" element={<UserAdmin />} />
@@ -35,6 +38,7 @@ export default function App() {
           <Route path="/producto/:id" element={<ProductDetail />} />
           <Route path="/registro" element={<Register />} />
           <Route path="/iniciar-sesion" element={<Login />} />
+          <Route path="/favoritos" element={<Favorites />} />
           <Route path="/administración" element={<AdminLayout />}>{adminRoutes}</Route>
           <Route path="/administracion" element={<AdminLayout />}>{adminRoutes}</Route>
           <Route path="*" element={<NotFound />} />

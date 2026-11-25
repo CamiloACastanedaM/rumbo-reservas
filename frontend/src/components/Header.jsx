@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, LayoutDashboard, LogOut } from 'lucide-react'
+import { ChevronDown, Heart, LayoutDashboard, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 import Isotype from './Isotype.jsx'
 import { initials, useAuth } from '../auth.jsx'
@@ -76,6 +76,9 @@ function UserMenu({ user }) {
           <strong>{user.firstName} {user.lastName}</strong>
           <span>{user.email}</span>
         </p>
+        <Link to="/favoritos" className="menu-item" onClick={() => setOpen(false)}>
+          <Heart size={16} aria-hidden="true" /> Mis favoritos
+        </Link>
         <button type="button" className="menu-item" onClick={signOut}>
           <LogOut size={16} aria-hidden="true" /> Cerrar sesión
         </button>

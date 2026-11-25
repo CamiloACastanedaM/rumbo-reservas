@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import App from './App.jsx'
 import { AuthProvider } from './auth.jsx'
+import { FavoritesProvider } from './favorites.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import './styles.css'
 
@@ -12,7 +13,9 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
-        <App />
+        <FavoritesProvider>
+          <App />
+        </FavoritesProvider>
       </AuthProvider>
       <Toaster position="bottom-center" richColors closeButton />
     </BrowserRouter>
