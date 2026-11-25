@@ -403,9 +403,9 @@ dialog::backdrop { background: color-mix(in oklab, var(--paramo-deep) 72%, trans
 }
 .field textarea { min-height: 8rem; resize: vertical; }
 .field input:focus, .field textarea:focus { outline: none; border-color: var(--rio); box-shadow: 0 0 0 3px color-mix(in oklab, var(--rio) 25%, transparent); }
-.field [aria-invalid="true"] { border-color: var(--danger); }
+.field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--danger); }
 .field .error { color: var(--danger); font-size: 0.875rem; font-weight: 600; }
-.field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4); align-items: end; }
 .dropzone {
   display: grid; place-items: center; gap: var(--space-2); text-align: center;
   padding: var(--space-6); border: 2px dashed var(--rule-strong); border-radius: var(--radius-md);

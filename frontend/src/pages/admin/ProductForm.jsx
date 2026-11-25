@@ -59,7 +59,8 @@ export default function ProductForm() {
     <>
       <h1>Agregar producto</h1>
       <p className="intro">Completa los datos del alojamiento. La primera foto será la principal.</p>
-      <form className="form" onSubmit={onSubmit} noValidate>
+      <form className="form" onSubmit={onSubmit} noValidate
+        onInput={(e) => errors[e.target.name] && setErrors((er) => ({ ...er, [e.target.name]: undefined }))}>
         <div className="field">
           <label htmlFor="name">Nombre</label>
           <input type="text" maxLength={120} {...fieldProps('name')} />

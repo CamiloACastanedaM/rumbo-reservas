@@ -71,7 +71,7 @@ export default function ProductList() {
       )}
       <ConfirmDialog open={target !== null} busy={busy}
         title={target ? `¿Eliminar «${target.name}»?` : ''}
-        message="El producto y sus fotos se borran de forma permanente. Esta acción no se puede deshacer."
+        message="El producto se borra de forma permanente y deja de aparecer en el sitio. Esta acción no se puede deshacer."
         confirmLabel="Eliminar" onConfirm={remove} onCancel={() => setTarget(null)} />
     </>
   )
