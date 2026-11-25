@@ -32,14 +32,14 @@ public final class ProductDtos {
 
     public record ProductDetail(Long id, String name, String description, String city, String address,
                                 BigDecimal pricePerNight, CategoryDto category, List<String> images,
-                                List<FeatureDto> features, List<PolicyDto> policies, Rating rating) {
+                                List<FeatureDto> features, List<PolicyDto> policies, Rating rating, String whatsappPhone) {
         static ProductDetail from(Product p, Rating rating) {
             return new ProductDetail(p.getId(), p.getName(), p.getDescription(), p.getCity(), p.getAddress(),
                     p.getPricePerNight(), p.getCategory() == null ? null : CategoryDto.from(p.getCategory()),
                     p.getImages().stream().map(ProductImage::getUrl).toList(),
                     p.getFeatures().stream().sorted(Comparator.comparing(Feature::getName)).map(FeatureDto::from).toList(),
                     p.getPolicies().stream().map(x -> new PolicyDto(x.getTitle(), x.getDescription())).toList(),
-                    rating);
+                    rating, p.getWhatsappPhone());
         }
     }
 

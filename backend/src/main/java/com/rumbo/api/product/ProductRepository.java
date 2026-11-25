@@ -1,7 +1,9 @@
 package com.rumbo.api.product;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
@@ -10,6 +12,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    /** Locks the product row until the transaction ends, so two bookings of the same dates can't both pass the overlap check. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Product p where p.id = :id")
+    Optional<Product> findForUpdate(Long id);
+
+    boolean existsByWhatsappPhoneIsNotNull();
+
     boolean existsByNameIgnoreCase(String name);
 
     @Query("select new com.rumbo.api.product.ProductDtos$AdminRow(p.id, p.name, c.title) from Product p left join p.category c order by p.id")

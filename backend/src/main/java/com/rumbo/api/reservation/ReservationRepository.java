@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Set;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+    /** History of one user, latest stay first. */
+    @Query("select r from Reservation r where r.user.id = :userId order by r.startDate desc, r.id desc")
+    List<Reservation> findHistory(Long userId);
+
     /** Stays of one product that end after `from` and start before `to`, in date order. */
     @Query("select r from Reservation r where r.product.id = :productId and r.endDate > :from and r.startDate < :to order by r.startDate")
     List<Reservation> findOverlapping(Long productId, LocalDate from, LocalDate to);

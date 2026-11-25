@@ -2,6 +2,7 @@ package com.rumbo.api.product;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -21,5 +22,8 @@ public record ProductForm(
         List<String> keepImages,
         /** Policies as two parallel lists (same index = same policy), easy to send in a multipart form. */
         List<@Size(max = 80, message = "El título de la política admite hasta 80 caracteres.") String> policyTitles,
-        List<@Size(max = 1000, message = "La descripción de la política admite hasta 1000 caracteres.") String> policyDescriptions) {
+        List<@Size(max = 1000, message = "La descripción de la política admite hasta 1000 caracteres.") String> policyDescriptions,
+        /** Host's WhatsApp with country code, e.g. 57 300 123 4567. Stored as digits only. */
+        @Pattern(regexp = "^$|^\\+?[0-9 ()-]{8,20}$", message = "Escribe el WhatsApp con el indicativo del país, solo números (ej.: 57 300 123 4567).")
+        String whatsappPhone) {
 }

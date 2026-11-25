@@ -236,6 +236,8 @@ public class ProductService {
         product.setDescription(form.description().trim());
         product.setCity(blankToNull(form.city()));
         product.setAddress(blankToNull(form.address()));
+        String phone = blankToNull(form.whatsappPhone());
+        product.setWhatsappPhone(phone == null ? null : phone.replaceAll("[^0-9]", ""));
         product.setPricePerNight(form.pricePerNight());
         product.setCategory(form.categoryId() == null ? null : categories.findById(form.categoryId())
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Esa categoría ya no existe. Elige otra.")));

@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * Loads data.sql only into an empty database, so products deleted by the admin never come back on restart.
- * features.sql and policies.sql run once, when their table is empty (also on databases created before them).
+ * features.sql, policies.sql and whatsapp.sql run once, when their table is empty (also on databases created before them).
  * Demo stays and reviews (dates relative to today) are added once, when there are no reservations.
  */
 @Component
@@ -86,6 +86,9 @@ public class SeedRunner implements ApplicationRunner {
         }
         if (products.countPolicies() == 0) {
             sql("policies.sql");
+        }
+        if (!products.existsByWhatsappPhoneIsNotNull()) {
+            sql("whatsapp.sql");
         }
         List<Long> ids = products.findAllIds();
         if (reservations.count() == 0 && ids.size() >= 5) {
