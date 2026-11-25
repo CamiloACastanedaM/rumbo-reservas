@@ -659,7 +659,7 @@ button.day:disabled { cursor: not-allowed; }
 .availability-block > .muted { margin-bottom: var(--space-4); }
 .availability-block .calendar { background: var(--papel); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: var(--space-4); }
 .policies-block h2 { text-decoration: underline; text-decoration-color: var(--ruta); text-decoration-thickness: 3px; text-underline-offset: 0.3em; margin-bottom: var(--space-5); }
-.policy-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-4); }
+.policy-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-4); align-items: start; }
 .policy-list li { background: var(--papel); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); min-width: 0; }
 .policy-list h3 { font-size: var(--step-1); font-weight: 700; margin-bottom: var(--space-2); overflow-wrap: anywhere; }
 .policy-list p { color: var(--text-muted); overflow-wrap: anywhere; white-space: pre-line; }
@@ -716,6 +716,7 @@ button.day:disabled { cursor: not-allowed; }
 .policy-rows li { display: grid; grid-template-columns: 1fr 2fr auto; gap: var(--space-3); align-items: end; padding: var(--space-3); border: 1px solid var(--rule); border-radius: var(--radius-sm); background: color-mix(in oklab, var(--frailejon) 25%, var(--papel)); }
 .policy-rows textarea { min-height: 0; }
 .btn-start { justify-self: start; }
+.nowrap { white-space: nowrap; }
 .thumb { width: 3.5rem; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-sm); }
 
 @media (prefers-reduced-motion: reduce) {

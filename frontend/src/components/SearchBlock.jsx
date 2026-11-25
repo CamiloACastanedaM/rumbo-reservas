@@ -127,7 +127,7 @@ function Suggest({ value, onChange }) {
         {options.map((option, i) => (
           <li key={option} id={`${listId}-${i}`} role="option" aria-selected={i === active}
             onMouseDown={(e) => { e.preventDefault(); choose(option) }}>
-            <MapPin size={16} aria-hidden="true" /> <span>{option}</span>
+            <MapPin size={16} aria-hidden="true" /> <span title={option}>{option}</span>
           </li>
         ))}
       </ul>

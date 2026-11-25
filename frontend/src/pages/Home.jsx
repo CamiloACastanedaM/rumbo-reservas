@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBlock from '../components/SearchBlock.jsx'
 import { formatShort } from '../components/DateRangeCalendar.jsx'
+import { formatCount } from '../components/Rating.jsx'
 
 // One random seed per page load: a reload reshuffles, while paging and coming back from a detail keep the order.
 const seed = crypto.getRandomValues(new Uint32Array(1))[0]
@@ -59,7 +60,7 @@ export default function Home() {
   )
 }
 
-const resultWord = (n) => `${n} ${n === 1 ? 'alojamiento' : 'alojamientos'}`
+const resultWord = (n) => `${formatCount(n)} ${n === 1 ? 'alojamiento' : 'alojamientos'}`
 
 /** Results of the search block. Categories and recommendations stay below, as on the plain home. */
 function SearchResults({ search, onClear }) {

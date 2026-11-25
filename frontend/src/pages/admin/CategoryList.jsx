@@ -77,7 +77,7 @@ export default function CategoryList() {
                 <td className="col-id">{c.id}</td>
                 <td className="col-icon">{c.imageUrl && <img className="thumb" src={imageSrc(c.imageUrl)} alt="" />}</td>
                 <td>{c.title}</td>
-                <td>{productsLabel(c.count)}</td>
+                <td className="nowrap">{productsLabel(c.count)}</td>
                 <td className="col-actions">
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTarget(c)}
                     aria-label={`Eliminar categoría ${c.title}`}>

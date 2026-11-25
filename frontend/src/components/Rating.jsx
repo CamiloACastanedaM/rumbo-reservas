@@ -1,7 +1,8 @@
 import { Star } from 'lucide-react'
 
 const one = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-export const reviewsLabel = (count) => `${count} ${count === 1 ? 'reseña' : 'reseñas'}`
+export const formatCount = (n) => new Intl.NumberFormat('es-CO').format(n)
+export const reviewsLabel = (count) => `${formatCount(count)} ${count === 1 ? 'reseña' : 'reseñas'}`
 
 /** Five stars, filled up to the rounded value. */
 export function Stars({ value, size = 16 }) {
