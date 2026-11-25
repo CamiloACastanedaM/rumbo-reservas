@@ -5,7 +5,7 @@ import { api, countLabel, imageSrc } from '../api.js'
 import ProductCard from '../components/ProductCard.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBlock from '../components/SearchBlock.jsx'
-import { formatShort } from '../components/DateRangeCalendar.jsx'
+import { formatShort, toIso } from '../components/DateRangeCalendar.jsx'
 import useApi from '../components/useApi.js'
 
 // One random seed per page load: a reload reshuffles, while paging and coming back from a detail keep the order.
@@ -30,7 +30,9 @@ export default function Home() {
   const toggle = (id) => setSelected(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
 
   // The search also lives in the URL (?buscar=&llegada=&salida=), so back/forward and shared links work.
-  const search = { q: params.get('buscar') ?? '', start: params.get('llegada'), end: params.get('salida') }
+  // Dates of an old shared link that already passed are dropped, so the link still searches the text.
+  const fresh = (params.get('llegada') ?? '') >= toIso(new Date())
+  const search = { q: params.get('buscar') ?? '', start: fresh ? params.get('llegada') : null, end: fresh ? params.get('salida') : null }
   const active = Boolean(search.q || (search.start && search.end))
   const runSearch = ({ q, start, end }) => {
     setParams((prev) => {

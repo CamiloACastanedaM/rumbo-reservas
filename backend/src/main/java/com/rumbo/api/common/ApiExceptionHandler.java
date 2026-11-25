@@ -39,6 +39,13 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(new ApiError(400, "Algún dato de la solicitud no tiene un formato válido.", Map.of()));
     }
 
+    /** Two requests that save the same thing at once (a favorite, a review): the second one loses. */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    ResponseEntity<ApiError> handle(org.springframework.dao.DataIntegrityViolationException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiError(409, "Ese cambio ya estaba guardado. Recarga la página para ver lo último.", Map.of()));
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<ApiError> handle(MaxUploadSizeExceededException e) {
         return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)

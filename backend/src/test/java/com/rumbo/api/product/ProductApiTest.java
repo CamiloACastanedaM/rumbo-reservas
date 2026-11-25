@@ -82,6 +82,12 @@ class ProductApiTest {
         mvc.perform(multipart("/api/admin/products").with(ADMIN).param("name", "Sin fotos").param("description", "x"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("imagen")));
+
+        var image = new MockMultipartFile("images", "a.jpg", "image/jpeg", new byte[]{1, 2, 3});
+        mvc.perform(multipart("/api/admin/products").with(ADMIN).file(image).param("name", "Media política")
+                        .param("description", "x").param("policyTitles", "Mascotas").param("policyDescriptions", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("título y una descripción")));
     }
 
     @Test

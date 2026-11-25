@@ -115,7 +115,6 @@ public class ProductService {
                 .map(r -> new BookedRange(r.getStartDate(), r.getEndDate())).toList();
     }
 
-    /** Average (one decimal) and count of reviews per product; products without reviews are left out. */
     /** 404 with the usual message when the product is gone. */
     public void requireExists(Long id) {
         if (!repository.existsById(id)) {
@@ -123,6 +122,7 @@ public class ProductService {
         }
     }
 
+    /** Average (one decimal) and count of reviews per product; products without reviews are left out. */
     private Map<Long, Rating> ratings(Collection<Long> productIds) {
         if (productIds.isEmpty()) {
             return Map.of();
@@ -146,7 +146,7 @@ public class ProductService {
     }
 
     private PageResponse<ProductSummary> page(List<Long> ids, int page, int size, long catalogTotal) {
-        int from = Math.min(page * size, ids.size());
+        int from = (int) Math.min((long) page * size, ids.size());
         List<ProductSummary> content = summaries(ids.subList(from, Math.min(from + size, ids.size())));
         int totalPages = (int) Math.ceil(ids.size() / (double) size);
         return new PageResponse<>(content, page, size, ids.size(), totalPages, catalogTotal);
@@ -248,9 +248,14 @@ public class ProductService {
         List<String> titles = form.policyTitles() == null ? List.of() : form.policyTitles();
         List<String> texts = form.policyDescriptions() == null ? List.of() : form.policyDescriptions();
         product.getPolicies().clear();
-        for (int i = 0; i < Math.min(titles.size(), texts.size()); i++) {
-            if (!titles.get(i).isBlank() && !texts.get(i).isBlank()) {
-                product.addPolicy(titles.get(i).trim(), texts.get(i).trim());
+        for (int i = 0; i < Math.max(titles.size(), texts.size()); i++) {
+            String title = i < titles.size() && titles.get(i) != null ? titles.get(i).trim() : "";
+            String text = i < texts.size() && texts.get(i) != null ? texts.get(i).trim() : "";
+            if (title.isEmpty() != text.isEmpty()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Cada política necesita un título y una descripción.");
+            }
+            if (!title.isEmpty()) {
+                product.addPolicy(title, text);
             }
         }
     }
