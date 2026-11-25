@@ -14,6 +14,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProductApiTest {
+    static final org.springframework.test.web.servlet.request.RequestPostProcessor ADMIN = user("admin").roles("ADMIN");
     @Autowired
     MockMvc mvc;
     @Autowired
@@ -43,28 +45,28 @@ class ProductApiTest {
     @Test
     void randomPagesCoverEveryProductOnceAndKeepOrderPerSeed() {
         List<Long> seen = new ArrayList<>();
-        var first = service.randomPage(42, 0, 10);
+        var first = service.randomPage(42, 0, 10, List.of());
         assertThat(first.totalPages()).isEqualTo(3);
         for (int page = 0; page < first.totalPages(); page++) {
-            var content = service.randomPage(42, page, 10).content();
+            var content = service.randomPage(42, page, 10, List.of()).content();
             assertThat(content.size()).isLessThanOrEqualTo(10);
             content.forEach(p -> seen.add(p.id()));
         }
         assertThat(seen).hasSize(23);
         assertThat(new HashSet<>(seen)).hasSize(23);
-        assertThat(service.randomPage(42, 0, 10).content()).isEqualTo(first.content());
-        assertThat(service.randomPage(7, 0, 10).content()).isNotEqualTo(first.content());
+        assertThat(service.randomPage(42, 0, 10, List.of()).content()).isEqualTo(first.content());
+        assertThat(service.randomPage(7, 0, 10, List.of()).content()).isNotEqualTo(first.content());
     }
 
     @Test
     void createsProductWithImagesAndRejectsDuplicateName() throws Exception {
         var image = new MockMultipartFile("images", "a.jpg", "image/jpeg", new byte[]{1, 2, 3});
-        mvc.perform(multipart("/api/admin/products").file(image)
+        mvc.perform(multipart("/api/admin/products").with(ADMIN).file(image)
                         .param("name", "Glamping Nuevo").param("description", "Vista al valle"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.images[0]").value(containsString("/uploads/")));
 
-        mvc.perform(multipart("/api/admin/products").file(image)
+        mvc.perform(multipart("/api/admin/products").with(ADMIN).file(image)
                         .param("name", "glamping nuevo").param("description", "Otra"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(containsString("nombre ya está en uso")));
@@ -72,12 +74,12 @@ class ProductApiTest {
 
     @Test
     void createRequiresNameDescriptionAndImage() throws Exception {
-        mvc.perform(multipart("/api/admin/products").param("name", "").param("description", ""))
+        mvc.perform(multipart("/api/admin/products").with(ADMIN).param("name", "").param("description", ""))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fields.name").exists())
                 .andExpect(jsonPath("$.fields.description").exists());
 
-        mvc.perform(multipart("/api/admin/products").param("name", "Sin fotos").param("description", "x"))
+        mvc.perform(multipart("/api/admin/products").with(ADMIN).param("name", "Sin fotos").param("description", "x"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("imagen")));
     }
@@ -87,14 +89,14 @@ class ProductApiTest {
         Long id = repository.findAllIds().getFirst();
         mvc.perform(get("/api/products/" + id)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.images.length()").value(1));
-        mvc.perform(delete("/api/admin/products/" + id)).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/admin/products/" + id).with(ADMIN)).andExpect(status().isNoContent());
         mvc.perform(get("/api/products/" + id)).andExpect(status().isNotFound());
         assertThat(repository.existsById(id)).isFalse();
     }
 
     @Test
     void adminListIsOrderedById() throws Exception {
-        mvc.perform(get("/api/admin/products"))
+        mvc.perform(get("/api/admin/products").with(ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(23))
                 .andExpect(jsonPath("$[0].name").value("Cabaña 1"));

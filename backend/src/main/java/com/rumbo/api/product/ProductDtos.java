@@ -1,8 +1,11 @@
 package com.rumbo.api.product;
 
 import com.rumbo.api.category.CategoryDto;
+import com.rumbo.api.feature.Feature;
+import com.rumbo.api.feature.FeatureController.FeatureDto;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 public final class ProductDtos {
@@ -19,17 +22,21 @@ public final class ProductDtos {
     }
 
     public record ProductDetail(Long id, String name, String description, String city, String address,
-                                BigDecimal pricePerNight, CategoryDto category, List<String> images) {
+                                BigDecimal pricePerNight, CategoryDto category, List<String> images,
+                                List<FeatureDto> features) {
         static ProductDetail from(Product p) {
             return new ProductDetail(p.getId(), p.getName(), p.getDescription(), p.getCity(), p.getAddress(),
                     p.getPricePerNight(), p.getCategory() == null ? null : CategoryDto.from(p.getCategory()),
-                    p.getImages().stream().map(ProductImage::getUrl).toList());
+                    p.getImages().stream().map(ProductImage::getUrl).toList(),
+                    p.getFeatures().stream().sorted(Comparator.comparing(Feature::getName)).map(FeatureDto::from).toList());
         }
     }
 
-    public record AdminRow(Long id, String name) {
+    public record AdminRow(Long id, String name, String category) {
     }
 
-    public record PageResponse<T>(List<T> content, int page, int size, long totalElements, int totalPages) {
+    /** totalElements counts the filtered list; catalogTotal counts every product (for "X de Y"). */
+    public record PageResponse<T>(List<T> content, int page, int size, long totalElements, int totalPages,
+                                  long catalogTotal) {
     }
 }

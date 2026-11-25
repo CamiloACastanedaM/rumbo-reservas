@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record ProductForm(
         @NotBlank(message = "El nombre es obligatorio.")
@@ -13,5 +14,9 @@ public record ProductForm(
         @Size(max = 2000, message = "La descripción admite hasta 2000 caracteres.") String description,
         @Size(max = 80, message = "La ciudad admite hasta 80 caracteres.") String city,
         @Size(max = 200, message = "La dirección admite hasta 200 caracteres.") String address,
-        @DecimalMin(value = "0", message = "El precio no puede ser negativo.") BigDecimal pricePerNight) {
+        @DecimalMin(value = "0", message = "El precio no puede ser negativo.") BigDecimal pricePerNight,
+        Long categoryId,
+        List<Long> featureIds,
+        /** On edit: existing image URLs to keep, in order. New uploads are appended after them. */
+        List<String> keepImages) {
 }

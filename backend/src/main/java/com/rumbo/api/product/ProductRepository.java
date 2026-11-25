@@ -11,15 +11,21 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByNameIgnoreCase(String name);
 
-    @Query("select new com.rumbo.api.product.ProductDtos$AdminRow(p.id, p.name) from Product p order by p.id")
+    @Query("select new com.rumbo.api.product.ProductDtos$AdminRow(p.id, p.name, c.title) from Product p left join p.category c order by p.id")
     List<ProductDtos.AdminRow> findAdminRows();
 
     @Query("select p.id from Product p order by p.id")
     List<Long> findAllIds();
 
+    @Query("select p.id from Product p where p.category.id in :categoryIds order by p.id")
+    List<Long> findIdsByCategoryIds(Collection<Long> categoryIds);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+
     @EntityGraph(attributePaths = {"images", "category"})
     List<Product> findByIdIn(Collection<Long> ids);
 
+    // features load lazily: fetching them in the same join would duplicate rows of the images list.
     @EntityGraph(attributePaths = {"images", "category"})
     Optional<Product> findWithImagesById(Long id);
 }

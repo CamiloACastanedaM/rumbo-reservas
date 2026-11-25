@@ -21,8 +21,9 @@ public class ProductController {
     @GetMapping("/products")
     public PageResponse<ProductSummary> random(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size,
-                                               @RequestParam(defaultValue = "0") long seed) {
-        return service.randomPage(seed, Math.max(page, 0), Math.clamp(size, 1, 10));
+                                               @RequestParam(defaultValue = "0") long seed,
+                                               @RequestParam(defaultValue = "") List<Long> categoryIds) {
+        return service.randomPage(seed, Math.max(page, 0), Math.clamp(size, 1, 10), categoryIds);
     }
 
     @GetMapping("/products/{id}")
@@ -40,6 +41,12 @@ public class ProductController {
     public ProductDetail create(@Valid @ModelAttribute ProductForm form,
                                 @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         return service.create(form, images);
+    }
+
+    @PutMapping(value = "/admin/products/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProductDetail update(@PathVariable Long id, @Valid @ModelAttribute ProductForm form,
+                                @RequestParam(value = "images", required = false) List<MultipartFile> images) {
+        return service.update(id, form, images);
     }
 
     @DeleteMapping("/admin/products/{id}")

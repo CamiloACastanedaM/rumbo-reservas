@@ -1,0 +1,16 @@
+-- Características de ejemplo. Se cargan una sola vez, cuando la tabla features está vacía.
+INSERT IGNORE INTO features (id, name, icon) VALUES
+(1, 'Wifi', 'wifi'),
+(2, 'Parqueadero', 'car'),
+(3, 'Piscina', 'waves'),
+(4, 'Chimenea', 'flame'),
+(5, 'Cocina equipada', 'utensils-crossed'),
+(6, 'Aire acondicionado', 'snowflake'),
+(7, 'Admite mascotas', 'paw-print'),
+(8, 'Desayuno incluido', 'coffee'),
+(9, 'Vista a la montaña', 'mountain'),
+(10, 'Jacuzzi', 'bath');
+-- Solo enlaza los productos de ejemplo que todavía existen.
+INSERT IGNORE INTO product_features (product_id, feature_id)
+SELECT l.pid, l.fid FROM (SELECT 1 AS pid, 1 AS fid UNION ALL SELECT 1 AS pid, 2 AS fid UNION ALL SELECT 1 AS pid, 4 AS fid UNION ALL SELECT 1 AS pid, 8 AS fid UNION ALL SELECT 1 AS pid, 9 AS fid UNION ALL SELECT 2 AS pid, 1 AS fid UNION ALL SELECT 2 AS pid, 2 AS fid UNION ALL SELECT 2 AS pid, 4 AS fid UNION ALL SELECT 2 AS pid, 5 AS fid UNION ALL SELECT 2 AS pid, 9 AS fid UNION ALL SELECT 3 AS pid, 7 AS fid UNION ALL SELECT 3 AS pid, 8 AS fid UNION ALL SELECT 3 AS pid, 9 AS fid UNION ALL SELECT 4 AS pid, 1 AS fid UNION ALL SELECT 4 AS pid, 2 AS fid UNION ALL SELECT 4 AS pid, 4 AS fid UNION ALL SELECT 4 AS pid, 9 AS fid UNION ALL SELECT 5 AS pid, 1 AS fid UNION ALL SELECT 5 AS pid, 8 AS fid UNION ALL SELECT 5 AS pid, 9 AS fid UNION ALL SELECT 5 AS pid, 10 AS fid UNION ALL SELECT 6 AS pid, 1 AS fid UNION ALL SELECT 6 AS pid, 2 AS fid UNION ALL SELECT 6 AS pid, 8 AS fid UNION ALL SELECT 6 AS pid, 9 AS fid UNION ALL SELECT 7 AS pid, 7 AS fid UNION ALL SELECT 7 AS pid, 8 AS fid UNION ALL SELECT 7 AS pid, 9 AS fid UNION ALL SELECT 8 AS pid, 2 AS fid UNION ALL SELECT 8 AS pid, 4 AS fid UNION ALL SELECT 8 AS pid, 7 AS fid UNION ALL SELECT 8 AS pid, 9 AS fid UNION ALL SELECT 9 AS pid, 1 AS fid UNION ALL SELECT 9 AS pid, 6 AS fid UNION ALL SELECT 9 AS pid, 8 AS fid UNION ALL SELECT 10 AS pid, 1 AS fid UNION ALL SELECT 10 AS pid, 8 AS fid UNION ALL SELECT 11 AS pid, 1 AS fid UNION ALL SELECT 11 AS pid, 3 AS fid UNION ALL SELECT 11 AS pid, 6 AS fid UNION ALL SELECT 12 AS pid, 1 AS fid UNION ALL SELECT 12 AS pid, 8 AS fid UNION ALL SELECT 13 AS pid, 1 AS fid UNION ALL SELECT 13 AS pid, 2 AS fid UNION ALL SELECT 13 AS pid, 5 AS fid UNION ALL SELECT 13 AS pid, 7 AS fid UNION ALL SELECT 13 AS pid, 8 AS fid UNION ALL SELECT 13 AS pid, 9 AS fid UNION ALL SELECT 14 AS pid, 1 AS fid UNION ALL SELECT 14 AS pid, 2 AS fid UNION ALL SELECT 14 AS pid, 3 AS fid UNION ALL SELECT 14 AS pid, 5 AS fid UNION ALL SELECT 14 AS pid, 6 AS fid UNION ALL SELECT 14 AS pid, 7 AS fid UNION ALL SELECT 15 AS pid, 2 AS fid UNION ALL SELECT 15 AS pid, 5 AS fid UNION ALL SELECT 15 AS pid, 7 AS fid UNION ALL SELECT 15 AS pid, 9 AS fid UNION ALL SELECT 16 AS pid, 1 AS fid UNION ALL SELECT 16 AS pid, 2 AS fid UNION ALL SELECT 16 AS pid, 8 AS fid UNION ALL SELECT 16 AS pid, 9 AS fid UNION ALL SELECT 17 AS pid, 1 AS fid UNION ALL SELECT 17 AS pid, 5 AS fid UNION ALL SELECT 18 AS pid, 1 AS fid UNION ALL SELECT 18 AS pid, 3 AS fid UNION ALL SELECT 18 AS pid, 5 AS fid UNION ALL SELECT 18 AS pid, 6 AS fid UNION ALL SELECT 19 AS pid, 1 AS fid UNION ALL SELECT 19 AS pid, 5 AS fid UNION ALL SELECT 20 AS pid, 1 AS fid UNION ALL SELECT 20 AS pid, 8 AS fid) l
+JOIN products p ON p.id = l.pid JOIN features f ON f.id = l.fid;

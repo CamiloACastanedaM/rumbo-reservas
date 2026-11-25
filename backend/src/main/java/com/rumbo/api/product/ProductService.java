@@ -1,6 +1,8 @@
 package com.rumbo.api.product;
 
+import com.rumbo.api.category.CategoryRepository;
 import com.rumbo.api.common.ApiException;
+import com.rumbo.api.feature.FeatureRepository;
 import com.rumbo.api.product.ProductDtos.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -16,10 +18,15 @@ import java.util.stream.Collectors;
 public class ProductService {
     private static final String NAME_IN_USE = "El nombre ya está en uso. Elige otro nombre para el producto.";
     private final ProductRepository repository;
+    private final CategoryRepository categories;
+    private final FeatureRepository features;
     private final ImageStorage storage;
 
-    public ProductService(ProductRepository repository, ImageStorage storage) {
+    public ProductService(ProductRepository repository, CategoryRepository categories, FeatureRepository features,
+                          ImageStorage storage) {
         this.repository = repository;
+        this.categories = categories;
+        this.features = features;
         this.storage = storage;
     }
 
@@ -28,8 +35,10 @@ public class ProductService {
      * shortcut: shuffles every id in memory, fine for a catalog of a few thousand rows; move to a seeded SQL order if it grows.
      */
     @Transactional(readOnly = true)
-    public PageResponse<ProductSummary> randomPage(long seed, int page, int size) {
-        List<Long> ids = new ArrayList<>(repository.findAllIds()); // mutable copy for shuffle
+    public PageResponse<ProductSummary> randomPage(long seed, int page, int size, Collection<Long> categoryIds) {
+        long catalogTotal = repository.count();
+        List<Long> ids = new ArrayList<>(categoryIds.isEmpty() ? repository.findAllIds()
+                : repository.findIdsByCategoryIds(categoryIds)); // mutable copy for shuffle
         Collections.shuffle(ids, new Random(seed));
         int from = Math.min(page * size, ids.size());
         List<Long> slice = ids.subList(from, Math.min(from + size, ids.size()));
@@ -37,13 +46,12 @@ public class ProductService {
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
         List<ProductSummary> content = slice.stream().map(byId::get).map(ProductSummary::from).toList();
         int totalPages = (int) Math.ceil(ids.size() / (double) size);
-        return new PageResponse<>(content, page, size, ids.size(), totalPages);
+        return new PageResponse<>(content, page, size, ids.size(), totalPages, catalogTotal);
     }
 
     @Transactional(readOnly = true)
     public ProductDetail detail(Long id) {
-        return repository.findWithImagesById(id).map(ProductDetail::from)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "No encontramos ese alojamiento."));
+        return ProductDetail.from(find(id));
     }
 
     @Transactional(readOnly = true)
@@ -57,25 +65,33 @@ public class ProductService {
         if (repository.existsByNameIgnoreCase(name)) {
             throw new ApiException(HttpStatus.CONFLICT, NAME_IN_USE);
         }
-        List<MultipartFile> files = images == null ? List.of() : images.stream().filter(f -> !f.isEmpty()).toList();
+        List<MultipartFile> files = nonEmpty(images);
         if (files.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Agrega al menos una imagen del producto.");
         }
         Product product = new Product();
-        product.setName(name);
-        product.setDescription(form.description().trim());
-        product.setCity(blankToNull(form.city()));
-        product.setAddress(blankToNull(form.address()));
-        product.setPricePerNight(form.pricePerNight());
-        List<String> stored = files.stream().map(storage::store).toList();
-        stored.forEach(product::addImage);
-        try {
-            return ProductDetail.from(repository.saveAndFlush(product));
-        } catch (DataIntegrityViolationException e) {
-            // The unique index also ignores accents (MySQL collation), and catches concurrent creates.
-            storage.deleteQuietly(stored);
+        apply(product, form);
+        return saveWithImages(product, files);
+    }
+
+    @Transactional
+    public ProductDetail update(Long id, ProductForm form, List<MultipartFile> images) {
+        Product product = find(id);
+        if (repository.existsByNameIgnoreCaseAndIdNot(form.name().trim(), id)) {
             throw new ApiException(HttpStatus.CONFLICT, NAME_IN_USE);
         }
+        List<String> keep = form.keepImages() == null ? List.of() : form.keepImages();
+        List<MultipartFile> files = nonEmpty(images);
+        if (keep.isEmpty() && files.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "El producto necesita al menos una imagen.");
+        }
+        apply(product, form);
+        // Kept photos stay in the order the admin left them; removed ones are deleted (orphanRemoval).
+        List<String> kept = product.getImages().stream().map(ProductImage::getUrl).filter(keep::contains)
+                .sorted(Comparator.comparingInt(keep::indexOf)).toList();
+        product.getImages().clear();
+        kept.forEach(product::addImage);
+        return saveWithImages(product, files);
     }
 
     @Transactional
@@ -84,6 +100,43 @@ public class ProductService {
             throw new ApiException(HttpStatus.NOT_FOUND, "Ese producto ya no existe.");
         }
         repository.deleteById(id);
+    }
+
+    private Product find(Long id) {
+        return repository.findWithImagesById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "No encontramos ese alojamiento."));
+    }
+
+    private void apply(Product product, ProductForm form) {
+        product.setName(form.name().trim());
+        product.setDescription(form.description().trim());
+        product.setCity(blankToNull(form.city()));
+        product.setAddress(blankToNull(form.address()));
+        product.setPricePerNight(form.pricePerNight());
+        product.setCategory(form.categoryId() == null ? null : categories.findById(form.categoryId())
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Esa categoría ya no existe. Elige otra.")));
+        List<Long> featureIds = form.featureIds() == null ? List.of() : form.featureIds();
+        var found = features.findAllById(featureIds);
+        if (found.size() != new HashSet<>(featureIds).size()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Alguna característica ya no existe. Recarga la página.");
+        }
+        product.setFeatures(new HashSet<>(found));
+    }
+
+    private ProductDetail saveWithImages(Product product, List<MultipartFile> files) {
+        List<String> stored = files.stream().map(storage::store).toList();
+        stored.forEach(product::addImage);
+        try {
+            return ProductDetail.from(repository.saveAndFlush(product));
+        } catch (DataIntegrityViolationException e) {
+            // The unique index also ignores accents (MySQL collation), and catches concurrent saves.
+            storage.deleteQuietly(stored);
+            throw new ApiException(HttpStatus.CONFLICT, NAME_IN_USE);
+        }
+    }
+
+    private static List<MultipartFile> nonEmpty(List<MultipartFile> images) {
+        return images == null ? List.of() : images.stream().filter(f -> !f.isEmpty()).toList();
     }
 
     private static String blankToNull(String s) {
