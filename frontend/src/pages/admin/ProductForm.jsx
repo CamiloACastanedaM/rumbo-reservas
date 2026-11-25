@@ -99,7 +99,8 @@ export default function ProductForm() {
     <>
       <h1>{editing ? 'Editar producto' : 'Agregar producto'}</h1>
       <p className="intro">{editing ? 'Cambia los datos, la categoría, las características o las fotos.' : 'Completa los datos del alojamiento. La primera foto será la principal.'}</p>
-      <form className="form" onSubmit={onSubmit} noValidate
+      {/* key: a different product id re-mounts the inputs so their defaultValue applies */}
+      <form key={product.id ?? 'new'} className="form" onSubmit={onSubmit} noValidate
         onInput={(e) => clearError(e.target.name)}>
         <div className="field">
           <label htmlFor="name">Nombre</label>

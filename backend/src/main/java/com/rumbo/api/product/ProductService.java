@@ -89,9 +89,12 @@ public class ProductService {
         // Kept photos stay in the order the admin left them; removed ones are deleted (orphanRemoval).
         Set<String> current = product.getImages().stream().map(ProductImage::getUrl).collect(Collectors.toSet());
         List<String> kept = keep.stream().filter(current::contains).distinct().toList();
+        List<String> removed = current.stream().filter(url -> !kept.contains(url) && url.startsWith("/uploads/")).toList();
         product.getImages().clear();
         kept.forEach(product::addImage);
-        return saveWithImages(product, files);
+        ProductDetail saved = saveWithImages(product, files);
+        storage.deleteQuietly(removed); // only after the save worked, so a failed edit keeps its photos
+        return saved;
     }
 
     @Transactional

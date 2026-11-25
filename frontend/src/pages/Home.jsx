@@ -17,7 +17,7 @@ export default function Home() {
   }, [])
 
   // Selected categories live in the URL (?categorias=1,3) so a reload or a shared link keeps the filter.
-  const selected = (params.get('categorias') ?? '').split(',').filter(Boolean).map(Number)
+  const selected = (params.get('categorias') ?? '').split(',').filter(Boolean).map(Number).filter(Number.isInteger)
   const setSelected = (ids) => setParams(ids.length ? { categorias: ids.join(',') } : {})
   const toggle = (id) => setSelected(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id])
 
