@@ -183,6 +183,7 @@ cd frontend && npm run build  # build de producción
 | API | Railway (Docker) | https://rumbo-reservas-production.up.railway.app/api/products |
 | Documentación de la API | Swagger UI | https://rumbo-reservas-production.up.railway.app/swagger-ui/index.html |
 | Base de datos | Railway MySQL | Privada, solo accesible desde la API |
+| Correos (bienvenida y reserva) | Brevo (API HTTPS) | Railway bloquea el SMTP en su plan gratuito |
 
 Las imágenes que suben los administradores se guardan en un volumen de Railway. Cada push a `main` vuelve a desplegar las dos partes. Paso a paso y variables de entorno: [`docs/despliegue.md`](docs/despliegue.md).
 
