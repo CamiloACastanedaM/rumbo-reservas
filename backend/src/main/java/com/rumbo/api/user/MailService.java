@@ -1,12 +1,15 @@
 package com.rumbo.api.user;
 
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
@@ -17,7 +20,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class MailService {
@@ -25,12 +30,15 @@ public class MailService {
     private final JavaMailSender sender;
     private final String from;
     private final String frontendUrl;
+    private final String brevoApiKey;
 
     public MailService(JavaMailSender sender, @Value("${app.mail.from}") String from,
-                       @Value("${app.frontend-url}") String frontendUrl) {
+                       @Value("${app.frontend-url}") String frontendUrl,
+                       @Value("${app.mail.brevo-api-key:}") String brevoApiKey) {
         this.sender = sender;
         this.from = from;
         this.frontendUrl = frontendUrl;
+        this.brevoApiKey = brevoApiKey;
     }
 
     /** Sent in the background: a mail outage never blocks or undoes a registration. */
@@ -117,6 +125,10 @@ public class MailService {
     }
 
     private void send(String to, String subject, String text, String html, String kind) {
+        if (!brevoApiKey.isBlank()) {
+            sendWithBrevo(to, subject, text, html, kind);
+            return;
+        }
         try {
             var message = sender.createMimeMessage();
             var helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -126,6 +138,22 @@ public class MailService {
             helper.setText(text, html);
             sender.send(message);
         } catch (MailException | MessagingException e) {
+            log.warn("No se pudo enviar el correo {} a {}: {}", kind, to, e.getMessage());
+        }
+    }
+
+    /** Brevo's HTTPS API: hosts such as Railway block outbound SMTP ports, port 443 always works. */
+    private void sendWithBrevo(String to, String subject, String text, String html, String kind) {
+        try {
+            var address = new InternetAddress(from);
+            var body = Map.of(
+                    "sender", Map.of("name", address.getPersonal() == null ? "Rumbo" : address.getPersonal(),
+                            "email", address.getAddress()),
+                    "to", List.of(Map.of("email", to)),
+                    "subject", subject, "htmlContent", html, "textContent", text);
+            RestClient.create().post().uri("https://api.brevo.com/v3/smtp/email")
+                    .header("api-key", brevoApiKey).body(body).retrieve().toBodilessEntity();
+        } catch (RestClientException | MessagingException e) {
             log.warn("No se pudo enviar el correo {} a {}: {}", kind, to, e.getMessage());
         }
     }

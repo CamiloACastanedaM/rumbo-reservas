@@ -40,13 +40,8 @@ ADMIN_EMAIL=tu-correo-de-administrador
 ADMIN_PASSWORD=una-contrasena-fuerte
 CORS_ORIGINS=https://tu-sitio.vercel.app
 FRONTEND_URL=https://tu-sitio.vercel.app
-MAIL_HOST=smtp.tu-proveedor.com
-MAIL_PORT=587
-MAIL_USERNAME=usuario-smtp
-MAIL_PASSWORD=contrasena-smtp
-MAIL_SMTP_AUTH=true
-MAIL_STARTTLS=true
-MAIL_FROM=Rumbo <no-responder@tu-dominio.com>
+BREVO_API_KEY=clave-api-de-brevo
+MAIL_FROM=Rumbo <correo-verificado-en-brevo>
 APP_SEED=true
 ```
 
@@ -56,10 +51,10 @@ APP_SEED=true
 | `JWT_SECRET` | Clave aleatoria de 32 caracteres o más. Genérala con `openssl rand -base64 48` o con un generador de contraseñas. Si la dejas vacía, las sesiones se cierran cada vez que la API se reinicia. |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Primer administrador; se crea al arrancar si no existe. |
 | `CORS_ORIGINS`, `FRONTEND_URL` | La URL de Vercel, sin `/` al final. Mientras no la tengas, déjalas vacías y complétalas en el paso 3. |
-| `MAIL_*` | Datos SMTP de un proveedor real (Brevo, Mailgun, SendGrid, Resend, etc.), normalmente en el puerto 587 con `MAIL_SMTP_AUTH=true` y `MAIL_STARTTLS=true`. |
+| `BREVO_API_KEY`, `MAIL_FROM` | Railway bloquea el SMTP saliente (puertos 25, 465 y 587) en los planes Trial y Hobby, así que en producción los correos salen por la API HTTPS de Brevo (plan gratis, 300 correos al día). Crea la clave en Brevo → *SMTP & API* → *API Keys*. `MAIL_FROM` debe ser un remitente verificado en Brevo (el correo con el que creaste la cuenta ya lo está). Sin `BREVO_API_KEY` la API usa SMTP (`MAIL_HOST`, `MAIL_PORT`…), como en local con Mailpit. |
 | `APP_SEED` | `true` carga los 20 alojamientos de demostración y usuarios de prueba con la contraseña pública `Viajes2026`. Úsalo **solo para una demo**; para uso real pon `false`. |
 
-> **Correo:** si el SMTP falta o el proveedor bloquea el envío, los correos (bienvenida, confirmación de reserva) fallan en silencio: solo quedan registrados en los logs de Railway y la aplicación sigue funcionando.
+> **Correo:** si la clave de Brevo falta o el proveedor bloquea el envío, los correos (bienvenida, confirmación de reserva) fallan en silencio: solo quedan registrados en los logs de Railway y la aplicación sigue funcionando.
 
 `PORT` no hace falta: Railway lo inyecta y la API lo usa. `UPLOAD_DIR` ya viene fijado en la imagen como `/app/uploads`.
 
@@ -102,7 +97,7 @@ Si más adelante usas un dominio propio, agrégalo también a `CORS_ORIGINS` (va
 - [ ] Una reserva completa: elegir fechas en el detalle, confirmar y verla en «Mis reservas».
 - [ ] Recargar el navegador en una ruta profunda (por ejemplo el detalle de un alojamiento) sigue mostrando la página.
 - [ ] Entrar como administrador y subir una imagen a un alojamiento; tras un nuevo despliegue la imagen sigue ahí (volumen activo).
-- [ ] Si configuraste SMTP, llega el correo de bienvenida; si no, revisa los logs de Railway.
+- [ ] Con `BREVO_API_KEY`, llegan los correos de bienvenida y de reserva; si no, revisa los logs de Railway.
 
 ---
 
