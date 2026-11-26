@@ -175,6 +175,19 @@ cd frontend && npm run build  # build de producción
 
 ---
 
+## ☁️ Deploy
+
+| Parte | Plataforma | URL |
+|---|---|---|
+| Frontend | Vercel | https://rumbo-reservas.vercel.app |
+| API | Railway (Docker) | https://rumbo-reservas-production.up.railway.app/api/products |
+| Documentación de la API | Swagger UI | https://rumbo-reservas-production.up.railway.app/swagger-ui/index.html |
+| Base de datos | Railway MySQL | Privada, solo accesible desde la API |
+
+Las imágenes que suben los administradores se guardan en un volumen de Railway. Cada push a `main` vuelve a desplegar las dos partes. Paso a paso y variables de entorno: [`docs/despliegue.md`](docs/despliegue.md).
+
+---
+
 ## 📸 Capturas
 
 | Búsqueda con fechas | Reserva |
